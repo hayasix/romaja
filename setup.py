@@ -1,5 +1,5 @@
 #/usr/bin/env python2.6
-# vim:fileencoding=utf-8 fileformat=unix
+# vim: fileencoding=utf-8 fileformat=unix
 
 from distutils.core import setup
 try:
@@ -20,7 +20,7 @@ if PY2EXE:
         excludes = [
                 '_ssl',
                 'pyreadline', 'difflib', 'doctest', 'locale',
-                'optparse', 'pickle', 'calendar',
+                'pickle', 'calendar',
                 ],
         #dll_excludes = ['msvcr71.dll'],
         )
@@ -32,6 +32,7 @@ setup(
     author_email = __email__,
     license = __license__,
     platforms = ["generic"],
+    py_modules = ["romaja"],
     options = dict(py2exe = py2exe_options),
     console = [ dict(script = "romaja.py",), ],
     zipfile = "romaja.zip",
