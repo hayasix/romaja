@@ -33,7 +33,7 @@ if sys.platform.startswith("win"):
     ################## py2exe compliant ##################
 
 
-__version__ = "0.3.1"
+__version__ = "0.3.2"
 __author__ = "HAYASI Hideki"
 __copyright__ = "Copyright (C) 2013 HAYASI Hideki <linxs@linxs.org>"
 __license__ = "ZPL 2.1"
@@ -119,9 +119,8 @@ def romaji(s, use_h=False, sup_apo=False):
     s = romazi(s)
     s = re.sub(r"n([bmp])", r"m\1", s)
     s = _replace(s, "hu si zi ti tu sy zy ty", "fu shi ji chi tsu sh j ch")
-    s = _replace(s, "a^ i^ u^ e^ o^", "ah ii u e oh")
-    if not use_h:
-        s = _replace(s, "ah oh", "a o")
+    s = _replace(s, "i^ u^ e^", "ii u e")
+    s = _replace(s, "a^ o^", "ah oh" if use_h else "a o")
     if sup_apo:
         s = s.replace("'", "")
     return s
