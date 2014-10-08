@@ -1,4 +1,4 @@
-#/usr/bin/env python2.6
+#/usr/bin/env python2.7
 # vim: fileencoding=utf-8 fileformat=unix
 
 from distutils.core import setup
