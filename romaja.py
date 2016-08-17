@@ -35,7 +35,7 @@ if sys.platform.startswith("win"):
     ################## py2exe compliant ##################
 
 
-__version__ = "1.2.0"
+__version__ = "1.3.0"
 __author__ = "HAYASI Hideki"
 __copyright__ = "Copyright (C) 2013 HAYASI Hideki <linxs@linxs.org>"
 __license__ = "ZPL 2.1"
@@ -119,15 +119,15 @@ def romaji(s, h=False, m=False, extend=True, apostrophe=True):
         s = _translate(h2k(s),
                 (u"イェ ウィ ウェ ウォ ヴァ ヴィ ヴェ ヴォ ヴュ ヴ "
                  u"スィ シェ ズィ ジェ ティ トゥ チェ ディ ドゥ ヂェ "
-                 u"ファ フィ フェ フォ"),
+                 u"ツァ ツィ ツェ ツォ ファ フィ フェ フォ"),
                 (u"YE WI WE WO VA VI VE VO VYU VU "
                  u"ShI ShE ZhI JE ThI ThU CHE DI DU JE "
-                 u"FA FI FE FO"))
+                 u"TSA TsI TSE TSO FA FI FE FO"))
     s = romazi(s)
     if m:
         s = re.sub(ur"N([BMP])", ur"M\1", s)
-    s = _translate(s, u"HU SI ZI TI TU SY ZY TY Sh Zh Th",
-                      u"FU SHI JI CHI TSU SH J CH S Z T")
+    s = _translate(s, u"HU SI ZI TI TU SY ZY TY Sh Zh Th sI",
+                      u"FU SHI JI CHI TSU SH J CH S Z T SI")
     if h:
         s = _translate(s, u"A^ I^ U^ E^ O^", u"AH II U E OH")
     else:
