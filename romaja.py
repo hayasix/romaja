@@ -35,7 +35,7 @@ if sys.platform.startswith("win"):
     ################## py2exe compliant ##################
 
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 __author__ = "HAYASI Hideki"
 __copyright__ = "Copyright (C) 2013 HAYASI Hideki <linxs@linxs.org>"
 __license__ = "ZPL 2.1"
@@ -113,23 +113,26 @@ def romazi(s):
     return s
 
 
-def romaji(s, use_h=False, suppress_apostrophe=False):
-    s = _translate(h2k(s),
-            (u"イェ ウィ ウェ ウォ ヴァ ヴィ ヴェ ヴォ ヴュ ヴ "
-             u"スィ シェ ズィ ジェ ティ トゥ チェ ディ ドゥ ヂェ "
-             u"ファ フィ フェ フォ"),
-            (u"YE WI WE WO VA VI VE VO VYU VU "
-             u"ShI ShE ZhI JE ThI ThU CHE DI DU JE "
-             u"FA FI FE FO"))
+def romaji(s, h=False, m=False, extend=True, apostrophe=True):
+    s = h2k(s)
+    if extend:
+        s = _translate(h2k(s),
+                (u"イェ ウィ ウェ ウォ ヴァ ヴィ ヴェ ヴォ ヴュ ヴ "
+                 u"スィ シェ ズィ ジェ ティ トゥ チェ ディ ドゥ ヂェ "
+                 u"ファ フィ フェ フォ"),
+                (u"YE WI WE WO VA VI VE VO VYU VU "
+                 u"ShI ShE ZhI JE ThI ThU CHE DI DU JE "
+                 u"FA FI FE FO"))
     s = romazi(s)
-    s = re.sub(ur"N([BMP])", ur"M\1", s)
+    if m:
+        s = re.sub(ur"N([BMP])", ur"M\1", s)
     s = _translate(s, u"HU SI ZI TI TU SY ZY TY Sh Zh Th",
                       u"FU SHI JI CHI TSU SH J CH S Z T")
-    if use_h:
+    if h:
         s = _translate(s, u"A^ I^ U^ E^ O^", u"AH II U E OH")
     else:
         s = _translate(s, u"A^ I^ U^ E^ O^", u"A II U E O")
-    if suppress_apostrophe:
+    if not apostrophe:
         s = s.replace(u"'", "")
     return s
 
@@ -144,10 +147,13 @@ def main():
             If no argument is given, convert words read from standard-input.
             """)
     arg = parser.add_argument
-    arg("--use-h", "--use_h", action="store_true", help="`h' as long syllable")
-    arg("-A", "--suppress-apostrophe", action="store_true",
+    arg("-k", "--kunrei", action="store_true", help="use `kunrei' system")
+    arg("--use-h", action="store_true", help="`h' for long")
+    arg("--use-m", action="store_true", help="`m' before b/m/p")
+    arg("-A", "--no-apostrophe", dest="apostrophe", action="store_false",
             help="suppress apostrophe (') e.g. hon'ya -> honya")
-    arg("-k", "--kunrei", action="store_true", help="convert in kunrei-style")
+    arg("-X", "--no-extend", dest="extend", action="store_false",
+            help="do not allow non-native pronounciation")
     arg("--encoding", help="set input-encoding")
     arg("-v", "--version", action="store_true", help="show version info")
     arg("words", nargs="*", metavar="word")
@@ -165,8 +171,8 @@ def main():
     if args.kunrei:
         roman = romazi
     else:
-        roman = lambda s: romaji(s, use_h=args.use_h,
-                        suppress_apostrophe=args.suppress_apostrophe)
+        roman = lambda s: romaji(s, h=args.use_h, m=args.use_m,
+                        extend=args.extend, apostrophe=args.apostrophe)
     if args.words:
         print(u" ".join(roman(word.decode(enc)) for word in args.words))
     else:
