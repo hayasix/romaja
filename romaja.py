@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.7
-# vim: fileencoding=utf-8 fileformat=unix
+# vim: set fileencoding=utf-8 fileformat=unix :
 
 """romaja.py: Japanese Kana to Romaji converter
 
@@ -35,7 +35,7 @@ if sys.platform.startswith("win"):
     ################## py2exe compliant ##################
 
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 __author__ = "HAYASI Hideki"
 __copyright__ = "Copyright (C) 2013 HAYASI Hideki <linxs@linxs.org>"
 __license__ = "ZPL 2.1"
@@ -45,49 +45,45 @@ __status__ = "Production"
 __all__ = ("romazi", "romaji")
 
 KT = dict(
-        x=u"アイウエオ",
-        k=u"カキクケコ",
-        g=u"ガギグゲゴ",
-        s=u"サシスセソ",
-        z=u"ザジズゼゾ",
-        t=u"タチツテト",
-        d=u"ダヂヅデド",
-        n=u"ナニヌネノ",
-        h=u"ハヒフヘホ",
-        b=u"バビブベボ",
-        p=u"パピプペポ",
-        m=u"マミムメモ",
-        y=u"ヤ〓ユ〓ヨ",
-        r=u"ラリルレロ",
-        w=u"ワヰ〓ヱヲ",
+        X=u"アイウエオ",
+        K=u"カキクケコ",
+        G=u"ガギグゲゴ",
+        S=u"サシスセソ",
+        Z=u"ザジズゼゾ",
+        T=u"タチツテト",
+        D=u"ダヂヅデド",
+        N=u"ナニヌネノ",
+        H=u"ハヒフヘホ",
+        B=u"バビブベボ",
+        P=u"パピプペポ",
+        M=u"マミムメモ",
+        Y=u"ヤ〓ユ〓ヨ",
+        R=u"ラリルレロ",
+        W=u"ワヰ〓ヱヲ",
         )
-KR = dict((k[v], c + "aiueo"[v]) for (c, k) in KT.items() for v in range(5))
+KR = dict((k[v], c + u"AIUEO"[v]) for (c, k) in KT.items() for v in range(5))
 
 
-def _replace(s, in_, out):
+def _translate(s, in_, out):
     for (a, b) in zip(in_.split(), out.split()):
         s = s.replace(a, b)
     return s
 
 
-def hira_to_kata(s):
-    ss = list(s)
+def h2k(s):
+    ss = list(re.sub(ur"[うウ]゛", u"ヴ", s))
     for p, c in enumerate(ss):
         cc = ord(c)
         if 0x3041 <= cc <= 0x3096:
             ss[p] = unichr(cc + 0x60)
-    return "".join(ss)
+    return u"".join(ss)
 
 
 def romazi(s):
-    s = hira_to_kata(s)
-    s = _replace(s, u"ヰ ヱ ヲ ヂ ヅ", u"イ エ オ ジ ズ")
-    s = _replace(s, u"ファ フィ フェ フォ", u"fa fi fe fo")
-    s = _replace(s, u"ウ゛", u"ヴ")
-    s = _replace(s, u"ヴァ ヴィ ヴ ヴェ ヴォ", u"va vi vu ve vo")
-    s = _replace(s, u"ディ ドゥ", u"di du")
-    s = _replace(s, u"ァ ィ ゥ ェ ォ", u"a i u e o")
-    s = _replace(s, u"ン", u"n'")
+    s = h2k(s)
+    s = _translate(s, u"ヰ ヱ ヲ ヂ ヅ ウ゛ ヴ", u"イ エ オ ジ ズ ヴ ブ")
+    s = _translate(s, u"ァ ィ ゥ ェ ォ", u"XA XI XU XE XO")
+    s = _translate(s, u"ン", u"N'")
     ss = list(s)
     bc = KR.keys()
     sokuon = False
@@ -99,32 +95,42 @@ def romazi(s):
             sokuon = False
         elif c in u"ャュョ":
             pm = p - 1
-            ss[pm] = ss[pm][:-1] + "y" + "auo"[u"ャュョ".index(c)]
-            ss[p] = ""
+            ss[pm] = ss[pm][:-1] + u"Y" + u"AUO"[u"ャュョ".index(c)]
+            ss[p] = u""
         elif c == u"ッ":
             sokuon = True
-            ss[p] = ""
+            ss[p] = u""
         elif c == u"ー":
-            ss[p] = "^"
-    s = "".join(ss)
-    s = s.replace("x", "")
-    s = re.sub(r"n'([^aiueoy])", r"n\1", s)
-    s = s.replace("ouu", "o^u")
-    for c in "aiueo":
-        s = re.sub(c + "{2,}", c + "^", s)
-    s = s.replace("ou", "o^")
-    s = s.strip("'")
+            ss[p] = u"^"
+    s = u"".join(ss)
+    s = s.replace(u"X", u"")
+    s = re.sub(ur"N'([^AIUEOY])", ur"N\1", s)
+    s = s.replace(u"OUU", u"O^U")
+    for c in u"AIUEO":
+        s = re.sub(c + u"{2,}", c + u"^", s)
+    s = s.replace(u"OU", u"O^")
+    s = s.strip(u"'")
     return s
 
 
 def romaji(s, use_h=False, suppress_apostrophe=False):
+    s = _translate(h2k(s),
+            (u"イェ ウィ ウェ ウォ ヴァ ヴィ ヴェ ヴォ ヴュ ヴ "
+             u"スィ シェ ズィ ジェ ティ トゥ チェ ディ ドゥ ヂェ "
+             u"ファ フィ フェ フォ"),
+            (u"YE WI WE WO VA VI VE VO VYU VU "
+             u"ShI ShE ZhI JE ThI ThU CHE DI DU JE "
+             u"FA FI FE FO"))
     s = romazi(s)
-    s = re.sub(r"n([bmp])", r"m\1", s)
-    s = _replace(s, "hu si zi ti tu sy zy ty", "fu shi ji chi tsu sh j ch")
-    s = _replace(s, "i^ u^ e^", "ii u e")
-    s = _replace(s, "a^ o^", "ah oh" if use_h else "a o")
+    s = re.sub(ur"N([BMP])", ur"M\1", s)
+    s = _translate(s, u"HU SI ZI TI TU SY ZY TY Sh Zh Th",
+                      u"FU SHI JI CHI TSU SH J CH S Z T")
+    if use_h:
+        s = _translate(s, u"A^ I^ U^ E^ O^", u"AH II U E OH")
+    else:
+        s = _translate(s, u"A^ I^ U^ E^ O^", u"A II U E O")
     if suppress_apostrophe:
-        s = s.replace("'", "")
+        s = s.replace(u"'", "")
     return s
 
 
