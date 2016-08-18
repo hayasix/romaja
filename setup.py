@@ -25,7 +25,7 @@ if PY2EXE:
         #dll_excludes = ['msvcr71.dll'],
         )
 
-setup(
+kw = dict(
     name = "romaja",
     version = __version__,
     author = __author__,
@@ -33,7 +33,9 @@ setup(
     license = __license__,
     platforms = ["generic"],
     py_modules = ["romaja"],
-    options = dict(py2exe = py2exe_options),
     console = [ dict(script = "romaja.py",), ],
     zipfile = "romaja.zip",
     )
+if PY2EXE:
+    kw["options"] = dict(py2exe = py2exe_options)
+setup(**kw)

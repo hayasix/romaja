@@ -35,7 +35,7 @@ if sys.platform.startswith("win"):
     ################## py2exe compliant ##################
 
 
-__version__ = "1.4.0"
+__version__ = "1.4.1"
 __author__ = "HAYASI Hideki"
 __copyright__ = "Copyright (C) 2013 HAYASI Hideki <linxs@linxs.org>"
 __license__ = "ZPL 2.1"

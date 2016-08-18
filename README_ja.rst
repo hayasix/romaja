@@ -3,7 +3,7 @@ README
 ======
 
 | 2013-04-05 林秀樹
-| 2013-10-08 林秀樹
+| 2016-08-18 林秀樹
 
 
 このアーカイブについて
@@ -40,7 +40,7 @@ Zope Public License (ZPL) Version 2.1 を採用しています。
 収録物
 ======
 
-:README.rst:
+:README_ja.rst:
 
     本書
 
@@ -56,7 +56,8 @@ Zope Public License (ZPL) Version 2.1 を採用しています。
 :setup.py:
 
     ``romaja.py`` から py2exe を利用して Windows 実行形式を生成したり
-    ソースファイル配布用 zip ファイルを生成したりするためのスクリプトです。
+    ソースファイル配布用 zip ファイルを生成したりするためのスクリプト
+    です。
 
 
 使い方
@@ -68,32 +69,23 @@ Zope Public License (ZPL) Version 2.1 を採用しています。
 
     KANAWORD 中のひらがなまたはカタカナを訓令式ローマ字へ変換します。
 
-:romaji(KANAWORD, use_h=False):
+:romaji(KANAWORD, system='ANSI'):
 
     KANAWORD 中のひらがなまたはカタカナをヘボン式ローマ字へ変換します。
-    ``use_h=True`` とすると、アーおよびオーを ah, oh へ変換します。
-    なお、イーは常に ii となり、ウーおよびエーは長音でも短音の場合と
-    同じ表記になります。
+    system には 'ANSI', 'ISO', 'HEPBURN', 'KUNREI2', 'ROAD', 'RAIL'
+    または 'MOFA' を 指定できます。デフォルト値は 'ANSI' です。'ISO'
+    は訓令式 (第一表のみ) で、第二表も用いるものが 'KUNREI2' です。
+    'MOFA' は外務省式です。
 
 ``romaja.py`` をスクリプトとして実行すると、コマンドライン引数
-または標準入力から得た表記のうちひらがなまたはカタカナの部分をローマ字へ
-変換します。::
-
-    C:>　python romaja.py --help
-    Usage:     python romaja.py [options] [word_in_kana ...]
-
-        Convert Japanese words in kana into roman letters.
-        If no argument is given, convert words read from standard-input.
-
-    Options:
-      -h, --help           show this help message and exit
-      --use_h              represent long syllable with `h'
-      --kunrei             convert in kunrei-style
-      --encoding=ENCODING  set input-encoding
-      -v, --version        show version information
+または標準入力から得た表記のうちひらがなまたはカタカナの部分をローマ字
+へ変換します。::
 
     C:> python romaja.py ローマじ へんかん は めんどう だ。
-    romaji henkan ha mendo da。
+    RO~MAJI HENKAN HA MENDO~ DA。
+
+チルダ (~) はマクロンの代用として出力されているものです。system に 'ISO'
+や 'KUNREI2' を指定した場合はサーカムフレックス (^) が出力されます。
 
 
 注意事項
@@ -101,12 +93,6 @@ Zope Public License (ZPL) Version 2.1 を採用しています。
 
 - 人名変換を目的としていますので、複数の単語をならべたかな表記は
   正しく変換できないことがあります。
-
-- 日本語を想定しており、外国人名は適切に変換できないことがあります。
-  次の例では「ッティ」は「tti」となりません。::
-
-    C:> romaja まっちょ マセラッティ カルヴァン
-    matcho maserattei karuvan
 
 
 py2exe による Windows 実行形式
