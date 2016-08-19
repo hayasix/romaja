@@ -17,8 +17,8 @@ Usage: {script} [options] [WORD...]
 Options:
   -h, --help            show this
   --version             show version
-  --system NAME         'ANSI' | 'ISO' | 'HEPBURN' | 'KUNREI2' |
-                        'ROAD' | 'RAIL' | 'MOFA'
+  -s, --system NAME     'ANSI' | 'ISO' | 'HEPBURN' | 'KUNREI2' |
+                        'ROAD' | 'RAIL' | 'MOFA' | 'TEST'
   -k, --kunrei          adopt ISO3602 aka Kunrei-shiki
   --macron SYMBOL       subst char for long vowel [default: ~]
                         'NO' for nothing; '+' to double vowel
@@ -26,7 +26,6 @@ Options:
                         'NO' for nothing
   --m4n                 replace n before b/m/p with m
   -X, --no-extend       do not allow non-native pronounciation
-  --test                perform doctest
 """
 
 
@@ -35,7 +34,7 @@ import os
 import re
 
 
-__version__ = "3.0.0a"
+__version__ = "3.0.0a2"
 __author__ = "HAYASI Hideki"
 __copyright__ = "Copyright (C) 2013 HAYASI Hideki <linxs@linxs.org>"
 __license__ = "ZPL 2.1"
@@ -288,20 +287,23 @@ def main():
 
     args = docopt.docopt(__doc__.format(script=os.path.basename(__file__)),
                         version=__version__)
-    if args["--test"]:
-        import doctest
-        doctest.testmod()
-        return
-    system = "ISO" if args["--kunrei"] else args["--system"]
-    if not system:
+    if args["--kunrei"]:
+        system = "ISO"
+    elif args["--system"]:
+        system = args["--system"].upper()
+        if system == "TEST":
+            import doctest
+            doctest.testmod()
+            return
+    else:
         system = dict(
                 macron=args["--macron"] or "~",
                 apostrophe=args["--apostrophe"] or "'",
                 m4n=args["--m4n"] or False,
                 extend=(not args["--no-extend"]),
                 )
-    if system["macron"].upper() == "NO": system["macron"] = ""
-    if system["apostrophe"].upper() == "NO": system["apostrophe"] = ""
+        if system["macron"].upper() == "NO": system["macron"] = ""
+        if system["apostrophe"].upper() == "NO": system["apostrophe"] = ""
     if args["WORD"]:
         print(" ".join(roma(word, system) for word in args["WORD"]))
     else:
