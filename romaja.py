@@ -1,75 +1,75 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # vim: set fileencoding=utf-8 fileformat=unix :
 
-"""romaja.py: Japanese Kana to Romaji converter
+# Copyright (C) 2013 HAYASI Hideki <linxs@linxs.org>  All rights reserved.
+#
+# This software is subject to the provisions of the Zope Public License,
+# Version 2.1 (ZPL). A copy of the ZPL should accompany this distribution.
+# THIS SOFTWARE IS PROVIDED "AS IS" AND ANY AND ALL EXPRESS OR IMPLIED
+# WARRANTIES ARE DISCLAIMED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND FITNESS
+# FOR A PARTICULAR PURPOSE.
 
-Copyright (C) 2013 HAYASI Hideki <linxs@linxs.org>  All rights reserved.
+"""{script}: Japanese Kana to Romaji converter
 
-This software is subject to the provisions of the Zope Public License,
-Version 2.1 (ZPL). A copy of the ZPL should accompany this distribution.
-THIS SOFTWARE IS PROVIDED "AS IS" AND ANY AND ALL EXPRESS OR IMPLIED
-WARRANTIES ARE DISCLAIMED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND FITNESS
-FOR A PARTICULAR PURPOSE.
+Usage: {script} [options] [WORD...]
+
+Options:
+  -h, --help            show this
+  --version             show version
+  --system NAME         'ANSI' | 'ISO' | 'HEPBURN' | 'KUNREI2' |
+                        'ROAD' | 'RAIL' | 'MOFA'
+  -k, --kunrei          adopt ISO3602 aka Kunrei-shiki
+  --macron SYMBOL       subst char for long vowel [default: ~]
+                        'NO' for nothing; '+' to double vowel
+  --apostrophe SYMBOL   subst char after n before vowels [default: ']
+                        'NO' for nothing
+  --m4n                 replace n before b/m/p with m
+  -X, --no-extend       do not allow non-native pronounciation
+  --test                perform doctest
 """
 
-from __future__ import print_function
 
 import sys
 import os
 import re
 
 
-if sys.platform.startswith("win"):
-    ################## py2exe compliant ##################
-    import imp
-    if hasattr(sys, "setdefaultencoding"):
-        sys.setdefaultencoding("cp932")
-    def frozen():
-        return (hasattr(sys, "frozen") or
-                hasattr(sys, "importers") or
-                imp.is_frozen("__main__"))
-    def modulepath():
-        return os.path.abspath(os.path.dirname(
-            sys.executable if frozen() else sys.argv[0]))
-    ################## py2exe compliant ##################
-
-
-__version__ = "1.4.1"
+__version__ = "3.0.0a"
 __author__ = "HAYASI Hideki"
 __copyright__ = "Copyright (C) 2013 HAYASI Hideki <linxs@linxs.org>"
 __license__ = "ZPL 2.1"
 __email__ = "linxs@linxs.org"
 __status__ = "Production"
 
-__all__ = ("romazi", "romaji")
+__all__ = ("roma", "romazi", "romaji")
 
 KT = dict(
-        X=u"アイウエオ",
-        K=u"カキクケコ",
-        G=u"ガギグゲゴ",
-        S=u"サシスセソ",
-        Z=u"ザジズゼゾ",
-        T=u"タチツテト",
-        D=u"ダヂヅデド",
-        N=u"ナニヌネノ",
-        H=u"ハヒフヘホ",
-        B=u"バビブベボ",
-        P=u"パピプペポ",
-        M=u"マミムメモ",
-        Y=u"ヤ〓ユ〓ヨ",
-        R=u"ラリルレロ",
-        W=u"ワヰ〓ヱヲ",
+        X="アイウエオ",
+        K="カキクケコ",
+        G="ガギグゲゴ",
+        S="サシスセソ",
+        Z="ザジズゼゾ",
+        T="タチツテト",
+        D="ダヂヅデド",
+        N="ナニヌネノ",
+        H="ハヒフヘホ",
+        B="バビブベボ",
+        P="パピプペポ",
+        M="マミムメモ",
+        Y="ヤ〓ユ〓ヨ",
+        R="ラリルレロ",
+        W="ワヰ〓ヱヲ",
         )
-KR = dict((k[v], c + u"AIUEO"[v]) for (c, k) in KT.items() for v in range(5))
+KR = dict((k[v], c + "AIUEO"[v]) for (c, k) in list(KT.items()) for v in range(5))
 RECIPE = { # system: (macron, apostrophe, m4n, extend)
-    u"HEPBURN": (u"+", u"-", True, True),
-    u"ANSI":    (u"~", u"'", False, True),
-    u"KUNREI2": (u"^", u"'", False, True),
-    u"ROAD":    (u"", u"-", False, True),
-    u"RAIL":    (u"~", u"-", True, True),
-    u"MOFA":    (u"", u"", True, False),
-    u"":        (u"^", u"'", False, False),
+    "ANSI":    dict(macron="~", apostrophe="'", m4n=False, extend=True),
+    "HEPBURN": dict(macron="+", apostrophe="-", m4n=True, extend=True),
+    "KUNREI2": dict(macron="^", apostrophe="'", m4n=False, extend=True),
+    "ROAD":    dict(macron="", apostrophe="-", m4n=False, extend=True),
+    "RAIL":    dict(macron="~", apostrophe="-", m4n=True, extend=True),
+    "MOFA":    dict(macron="", apostrophe="", m4n=True, extend=False),
+    "ISO":     dict(macron="^", apostrophe="'", m4n=False, extend=False),
     }
 
 
@@ -80,37 +80,38 @@ def _translate(s, in_, out):
 
 
 def h2k(s):
-    ss = list(re.sub(ur"[うウ]゛", u"ヴ", s))
+    ss = list(re.sub(r"[うウ]゛", "ヴ", s))
     for p, c in enumerate(ss):
         cc = ord(c)
         if 0x3041 <= cc <= 0x3096:
-            ss[p] = unichr(cc + 0x60)
-    return u"".join(ss)
+            ss[p] = chr(cc + 0x60)
+    return "".join(ss)
 
 
-def romazi(s):
-    u"""Convert kana to its roman representation in ISO-style.
+def iso3602(s):
+    """Convert kana to its roman repr in ISO style (aka Kunrei-shiki).
 
     s           (unicode) source text
 
     Example:
-    >>> assert romaji(u"かんだ", "iso") == u"KANDA"
-    >>> assert romaji(u"かんなみ", "iso") == u"KANNAMI"
-    >>> assert romaji(u"しんじゅく", "iso") == u"SINZYUKU"
-    >>> assert romaji(u"チェック", "iso") == u"TIEKKU"
-    >>> assert romaji(u"しんばし", "iso") == u"SINBASI"
-    >>> assert romaji(u"チェンマイ", "iso") == u"TIENMAI"
-    >>> assert romaji(u"さんあい", "iso") == u"SAN'AI"
-    >>> assert romaji(u"こんやく", "iso") == u"KON'YAKU"
-    >>> assert romaji(u"カード", "iso") == u"KA^DO"
-    >>> assert romaji(u"ジェラシー", "iso") == u"ZIERASI^"
+    >>> assert iso3602(u"かんだ") == u"KANDA"
+    >>> assert iso3602(u"かんなみ") == u"KANNAMI"
+    >>> assert iso3602(u"しんじゅく") == u"SINZYUKU"
+    >>> assert iso3602(u"チェック") == u"TIEKKU"
+    >>> assert iso3602(u"しんばし") == u"SINBASI"
+    >>> assert iso3602(u"チェンマイ") == u"TIENMAI"
+    >>> assert iso3602(u"さんあい") == u"SAN'AI"
+    >>> assert iso3602(u"こんやく") == u"KON'YAKU"
+    >>> assert iso3602(u"カード") == u"KA^DO"
+    >>> assert iso3602(u"ジェラシー") == u"ZIERASI^"
+    >>> assert iso3602(u"まっちゃ") == u"MATTYA"
     """
     s = h2k(s)
-    s = _translate(s, u"ヰ ヱ ヲ ヂ ヅ ウ゛ ヴ", u"イ エ オ ジ ズ ヴ ブ")
-    s = _translate(s, u"ァ ィ ゥ ェ ォ", u"XA XI XU XE XO")
-    s = _translate(s, u"ン", u"N'")
+    s = _translate(s, "ヰ ヱ ヲ ヂ ヅ ウ゛ ヴ", "イ エ オ ジ ズ ヴ ブ")
+    s = _translate(s, "ァ ィ ゥ ェ ォ", "XA XI XU XE XO")
+    s = _translate(s, "ン", "N'")
     ss = list(s)
-    bc = KR.keys()
+    bc = list(KR.keys())
     sokuon = False
     for p, c in enumerate(ss):
         if c in bc:
@@ -118,184 +119,195 @@ def romazi(s):
             if sokuon:
                 ss[p] = ss[p][0] + ss[p]
             sokuon = False
-        elif c in u"ャュョ":
+        elif c in "ャュョ":
             pm = p - 1
-            ss[pm] = ss[pm][:-1] + u"Y" + u"AUO"[u"ャュョ".index(c)]
-            ss[p] = u""
-        elif c == u"ッ":
+            ss[pm] = ss[pm][:-1] + "Y" + "AUO"["ャュョ".index(c)]
+            ss[p] = ""
+        elif c == "ッ":
             sokuon = True
-            ss[p] = u""
-        elif c == u"ー":
-            ss[p] = u"^"
-    s = u"".join(ss)
-    s = s.replace(u"X", u"")
-    s = re.sub(ur"N'([^AIUEOY])", ur"N\1", s)
-    s = s.replace(u"OUU", u"O^U")
-    for c in u"AIUEO":
-        s = re.sub(c + u"{2,}", c + u"^", s)
-    s = s.replace(u"OU", u"O^")
-    s = s.strip(u"'")
+            ss[p] = ""
+        elif c == "ー":
+            ss[p] = "^"
+    s = "".join(ss)
+    s = s.replace("X", "")
+    s = re.sub(r"N'([^AIUEOY])", r"N\1", s)
+    s = s.replace("OUU", "O^U")
+    for c in "AIUEO":
+        s = re.sub(c + "{2,}", c + "^", s)
+    s = s.replace("OU", "O^")
+    s = s.strip("'")
     return s
 
 
-def romaji(s, system="ansi",
-        macron=None, apostrophe=None, m4n=None, extend=None):
-    u"""Convert kana to its roman representation.
+def roma(s, system="ANSI"):
+    """Convert kana to its roman repr in various styles.
 
     s           (unicode) source text
     system      (str) 'ANSI' | 'ISO' | 'HEPBURN' | 'KUNREI2' |
-                      'ROAD' | 'RAIL' | 'MOFA'
-    macron      (str) '^' | '~' | '+' | ''; '+'=double vowel
-    apostrophe  (str) "'" | '-' | ''
-    m4n         (bool) use m instead of n before b/m/p
-    extend      (bool) allow non-native pronounciation
+                      'ROAD' | 'RAIL' | 'MOFA'  [default: ANSI]
+                (dict) conversion specification
 
-    Example:
-    >>> assert romaji(u"かんだ", "iso") == u"KANDA"
-    >>> assert romaji(u"かんなみ", "iso") == u"KANNAMI"
-    >>> assert romaji(u"しんじゅく", "iso") == u"SINZYUKU"
-    >>> assert romaji(u"チェック", "iso") == u"TIEKKU"
-    >>> assert romaji(u"しんばし", "iso") == u"SINBASI"
-    >>> assert romaji(u"チェンマイ", "iso") == u"TIENMAI"
-    >>> assert romaji(u"さんあい", "iso") == u"SAN'AI"
-    >>> assert romaji(u"こんやく", "iso") == u"KON'YAKU"
-    >>> assert romaji(u"カード", "iso") == u"KA^DO"
-    >>> assert romaji(u"ジェラシー", "iso") == u"ZIERASI^"
-    >>> assert romaji(u"かんだ", "hepburn") == u"KANDA"
-    >>> assert romaji(u"かんなみ", "hepburn") == u"KANNAMI"
-    >>> assert romaji(u"しんじゅく", "hepburn") == u"SHINJUKU"
-    >>> assert romaji(u"チェック", "hepburn") == u"CHEKKU"
-    >>> assert romaji(u"しんばし", "hepburn") == u"SHIMBASHI"
-    >>> assert romaji(u"チェンマイ", "hepburn") == u"CHEMMAI"
-    >>> assert romaji(u"さんあい", "hepburn") == u"SAN-AI"
-    >>> assert romaji(u"こんやく", "hepburn") == u"KON-YAKU"
-    >>> assert romaji(u"カード", "hepburn") == u"KAADO"
-    >>> assert romaji(u"ジェラシー", "hepburn") == u"JERASHII"
-    >>> assert romaji(u"かんだ", "ansi") == u"KANDA"
-    >>> assert romaji(u"かんなみ", "ansi") == u"KANNAMI"
-    >>> assert romaji(u"しんじゅく", "ansi") == u"SHINJUKU"
-    >>> assert romaji(u"チェック", "ansi") == u"CHEKKU"
-    >>> assert romaji(u"しんばし", "ansi") == u"SHINBASHI"
-    >>> assert romaji(u"チェンマイ", "ansi") == u"CHENMAI"
-    >>> assert romaji(u"さんあい", "ansi") == u"SAN'AI"
-    >>> assert romaji(u"こんやく", "ansi") == u"KON'YAKU"
-    >>> assert romaji(u"カード", "ansi") == u"KA~DO"
-    >>> assert romaji(u"ジェラシー", "ansi") == u"JERASHI~"
-    >>> assert romaji(u"かんだ", "kunrei2") == u"KANDA"
-    >>> assert romaji(u"かんなみ", "kunrei2") == u"KANNAMI"
-    >>> assert romaji(u"しんじゅく", "kunrei2") == u"SHINJUKU"
-    >>> assert romaji(u"チェック", "kunrei2") == u"CHEKKU"
-    >>> assert romaji(u"しんばし", "kunrei2") == u"SHINBASHI"
-    >>> assert romaji(u"チェンマイ", "kunrei2") == u"CHENMAI"
-    >>> assert romaji(u"さんあい", "kunrei2") == u"SAN'AI"
-    >>> assert romaji(u"こんやく", "kunrei2") == u"KON'YAKU"
-    >>> assert romaji(u"カード", "kunrei2") == u"KA^DO"
-    >>> assert romaji(u"ジェラシー", "kunrei2") == u"JERASHI^"
-    >>> assert romaji(u"かんだ", "road") == u"KANDA"
-    >>> assert romaji(u"かんなみ", "road") == u"KANNAMI"
-    >>> assert romaji(u"しんじゅく", "road") == u"SHINJUKU"
-    >>> assert romaji(u"チェック", "road") == u"CHEKKU"
-    >>> assert romaji(u"しんばし", "road") == u"SHINBASHI"
-    >>> assert romaji(u"チェンマイ", "road") == u"CHENMAI"
-    >>> assert romaji(u"さんあい", "road") == u"SAN-AI"
-    >>> assert romaji(u"こんやく", "road") == u"KON-YAKU"
-    >>> assert romaji(u"カード", "road") == u"KADO"
-    >>> assert romaji(u"ジェラシー", "road") == u"JERASHII"
-    >>> assert romaji(u"かんだ", "rail") == u"KANDA"
-    >>> assert romaji(u"かんなみ", "rail") == u"KANNAMI"
-    >>> assert romaji(u"しんじゅく", "rail") == u"SHINJUKU"
-    >>> assert romaji(u"チェック", "rail") == u"CHEKKU"
-    >>> assert romaji(u"しんばし", "rail") == u"SHIMBASHI"
+    Keys and values of conversion specification are as follows::
+        macron      (str) '^' | '~' | '+' | 'H' | '';
+                          '+'=double vowel [default: ^]
+        apostrophe  (str) "'" | '-' | '' [default: ']
+        m4n         (bool) use m instead of n before b/m/p [default: False]
+        extend      (bool) allow non-native pronounciation [default: True]
+
+    Each system gives the following conversion specification:
+                macron  apostrophe  m4n     extend
+        ------------------------------------------
+        ANSI    ~       '           False   True
+        ISO     ~       '           False   False
+        HEPBURN +       -           True    True
+        KUNREI2 ~       '           False   True
+        ROAD    (none)  -           False   True
+        RAIL    ~       -           True    True
+        MOFA    (none)  (none)      True    False
+
+    Test:
+    >>> assert roma(u"かんだ", "ANSI") == u"KANDA"
+    >>> assert roma(u"かんなみ", "ANSI") == u"KANNAMI"
+    >>> assert roma(u"しんじゅく", "ANSI") == u"SHINJUKU"
+    >>> assert roma(u"チェック", "ANSI") == u"CHEKKU"
+    >>> assert roma(u"しんばし", "ANSI") == u"SHINBASHI"
+    >>> assert roma(u"チェンマイ", "ANSI") == u"CHENMAI"
+    >>> assert roma(u"さんあい", "ANSI") == u"SAN'AI"
+    >>> assert roma(u"こんやく", "ANSI") == u"KON'YAKU"
+    >>> assert roma(u"カード", "ANSI") == u"KA~DO"
+    >>> assert roma(u"ジェラシー", "ANSI") == u"JERASHI~"
+    >>> assert roma(u"まっちゃ", "ANSI") == u"MATCHA"
+    >>> assert roma(u"かんだ", "ISO") == u"KANDA"
+    >>> assert roma(u"かんなみ", "ISO") == u"KANNAMI"
+    >>> assert roma(u"しんじゅく", "ISO") == u"SINZYUKU"
+    >>> assert roma(u"チェック", "ISO") == u"TIEKKU"
+    >>> assert roma(u"しんばし", "ISO") == u"SINBASI"
+    >>> assert roma(u"チェンマイ", "ISO") == u"TIENMAI"
+    >>> assert roma(u"さんあい", "ISO") == u"SAN'AI"
+    >>> assert roma(u"こんやく", "ISO") == u"KON'YAKU"
+    >>> assert roma(u"カード", "ISO") == u"KA^DO"
+    >>> assert roma(u"ジェラシー", "ISO") == u"ZIERASI^"
+    >>> assert roma(u"まっちゃ", "ISO") == u"MATTYA"
+    >>> assert roma(u"かんだ", "HEPBURN") == u"KANDA"
+    >>> assert roma(u"かんなみ", "HEPBURN") == u"KANNAMI"
+    >>> assert roma(u"しんじゅく", "HEPBURN") == u"SHINJUKU"
+    >>> assert roma(u"チェック", "HEPBURN") == u"CHEKKU"
+    >>> assert roma(u"しんばし", "HEPBURN") == u"SHIMBASHI"
+    >>> assert roma(u"チェンマイ", "HEPBURN") == u"CHEMMAI"
+    >>> assert roma(u"さんあい", "HEPBURN") == u"SAN-AI"
+    >>> assert roma(u"こんやく", "HEPBURN") == u"KON-YAKU"
+    >>> assert roma(u"カード", "HEPBURN") == u"KAADO"
+    >>> assert roma(u"ジェラシー", "HEPBURN") == u"JERASHII"
+    >>> assert roma(u"まっちゃ", "HEPBURN") == u"MATCHA"
+    >>> assert roma(u"かんだ", "KUNREI2") == u"KANDA"
+    >>> assert roma(u"かんなみ", "KUNREI2") == u"KANNAMI"
+    >>> assert roma(u"しんじゅく", "KUNREI2") == u"SHINJUKU"
+    >>> assert roma(u"チェック", "KUNREI2") == u"CHEKKU"
+    >>> assert roma(u"しんばし", "KUNREI2") == u"SHINBASHI"
+    >>> assert roma(u"チェンマイ", "KUNREI2") == u"CHENMAI"
+    >>> assert roma(u"さんあい", "KUNREI2") == u"SAN'AI"
+    >>> assert roma(u"こんやく", "KUNREI2") == u"KON'YAKU"
+    >>> assert roma(u"カード", "KUNREI2") == u"KA^DO"
+    >>> assert roma(u"ジェラシー", "KUNREI2") == u"JERASHI^"
+    >>> assert roma(u"まっちゃ", "KUNREI2") == u"MACCHA"
+    >>> assert roma(u"かんだ", "ROAD") == u"KANDA"
+    >>> assert roma(u"かんなみ", "ROAD") == u"KANNAMI"
+    >>> assert roma(u"しんじゅく", "ROAD") == u"SHINJUKU"
+    >>> assert roma(u"チェック", "ROAD") == u"CHEKKU"
+    >>> assert roma(u"しんばし", "ROAD") == u"SHINBASHI"
+    >>> assert roma(u"チェンマイ", "ROAD") == u"CHENMAI"
+    >>> assert roma(u"さんあい", "ROAD") == u"SAN-AI"
+    >>> assert roma(u"こんやく", "ROAD") == u"KON-YAKU"
+    >>> assert roma(u"カード", "ROAD") == u"KADO"
+    >>> assert roma(u"ジェラシー", "ROAD") == u"JERASHII"
+    >>> assert roma(u"まっちゃ", "ROAD") == u"MATCHA"
+    >>> assert roma(u"かんだ", "RAIL") == u"KANDA"
+    >>> assert roma(u"かんなみ", "RAIL") == u"KANNAMI"
+    >>> assert roma(u"しんじゅく", "RAIL") == u"SHINJUKU"
+    >>> assert roma(u"チェック", "RAIL") == u"CHEKKU"
+    >>> assert roma(u"しんばし", "RAIL") == u"SHIMBASHI"
+    >>> assert roma(u"チェンマイ", "RAIL") == u"CHEMMAI"
+    >>> assert roma(u"さんあい", "RAIL") == u"SAN-AI"
+    >>> assert roma(u"こんやく", "RAIL") == u"KON-YAKU"
+    >>> assert roma(u"カード", "RAIL") == u"KA~DO"
+    >>> assert roma(u"ジェラシー", "RAIL") == u"JERASHI~"
+    >>> assert roma(u"まっちゃ", "RAIL") == u"MATCHA"
+    >>> assert roma(u"かんだ", "MOFA") == u"KANDA"
+    >>> assert roma(u"かんなみ", "MOFA") == u"KANNAMI"
+    >>> assert roma(u"しんじゅく", "MOFA") == u"SHINJUKU"
+    >>> assert roma(u"チェック", "MOFA") == u"CHIEKKU"
+    >>> assert roma(u"しんばし", "MOFA") == u"SHIMBASHI"
+    >>> assert roma(u"チェンマイ", "MOFA") == u"CHIEMMAI"
+    >>> assert roma(u"さんあい", "MOFA") == u"SANAI"
+    >>> assert roma(u"こんやく", "MOFA") == u"KONYAKU"
+    >>> assert roma(u"カード", "MOFA") == u"KADO"
+    >>> assert roma(u"ジェラシー", "MOFA") == u"JIERASHII"
+    >>> assert roma(u"まっちゃ", "MOFA") == u"MATCHA"
     """
-    system = system.upper()
-    if system == "ISO": return romazi(s)
-    opts = RECIPE[system]
-    macron = macron or opts[0]
-    apostrophe = apostrophe or opts[1]
-    m4n = m4n or opts[2]
-    extend = extend or opts[3]
+    if isinstance(system, str):
+        system = (system or "ANSI").upper()
+        if system == "ISO": return iso3602(s)
+        system = RECIPE[system]
     s = h2k(s)
-    if extend:
+    if system["extend"]:
         s = _translate(h2k(s),
-                (u"イェ ウィ ウェ ウォ ヴァ ヴィ ヴェ ヴォ ヴュ ヴ "
-                 u"スィ シェ ズィ ジェ ティ トゥ チェ ディ ドゥ ヂェ "
-                 u"ツァ ツィ ツェ ツォ ファ フィ フェ フォ"),
-                (u"YE WI WE WO VA VI VE VO VYU VU "
-                 u"ShI ShE ZhI JE ThI ThU CHE DI DU JE "
-                 u"TSA TsI TSE TSO FA FI FE FO"))
-    s = romazi(s)
-    if m4n:
-        s = re.sub(ur"N([BMP])", ur"M\1", s)
-    s = _translate(s, u"HU SI ZI TI TU SY ZY TY Sh Zh Th sI",
-                      u"FU SHI JI CHI TSU SH J CH S Z T SI")
-    if macron == u"+":
-        s = _translate(s, u"A^ I^ U^ E^ O^", u"AA II UU EE OO")
-    elif macron.upper() == u"H":
-        s = _translate(s, u"A^ I^ U^ E^ O^", u"AH II U E OH")
-    elif not macron:
-        s = _translate(s, u"A^ I^ U^ E^ O^", u"A II U E O")
-    elif macron != "^":
-        s = s.replace(u"^", macron)
-    if macron == "^":
-        s = s.replace(u"TCH", u"CCH")
-    if apostrophe != "'":
-        s = s.replace(u"'", apostrophe)
+                ("イェ ウィ ウェ ウォ ヴァ ヴィ ヴェ ヴォ ヴュ ヴ "
+                 "スィ シェ ズィ ジェ ティ トゥ チェ ディ ドゥ ヂェ "
+                 "ツァ ツィ ツェ ツォ ファ フィ フェ フォ"),
+                ("YE WI WE WO VA VI VE VO VYU VU "
+                 "ShI ShE ZhI JE ThI ThU CHE DI DU JE "
+                 "TSA TsI TSE TSO FA FI FE FO"))
+    s = iso3602(s)
+    if system["m4n"]:
+        s = re.sub(r"N([BMP])", r"M\1", s)
+    s = _translate(s, "HU SI ZI TI TU SY ZY TY Sh Zh Th sI",
+                      "FU SHI JI CHI TSU SH J CH S Z T SI")
+    if system["macron"] == "+":
+        s = _translate(s, "A^ I^ U^ E^ O^", "AA II UU EE OO")
+    elif system["macron"].upper() == "H":
+        s = _translate(s, "A^ I^ U^ E^ O^", "AH II U E OH")
+    elif not system["macron"]:
+        s = _translate(s, "A^ I^ U^ E^ O^", "A II U E O")
+    elif system["macron"] != "^":
+        s = s.replace("^", system["macron"])
+    if system["macron"] == "^":
+        s = s.replace("TCH", "CCH")
+    if system["apostrophe"] != "'":
+        s = s.replace("'", system["apostrophe"])
     return s
+
+
+# COMPATIBILITY
+romazi = iso3602
+romaji = lambda s: roma(s)
 
 
 def main():
 
-    from argparse import ArgumentParser
-    import codecs
+    import docopt
 
-    parser = ArgumentParser(description=u"""\
-Convert Japanese words in kana into roman letters.
-If no argument is given, convert words read from standard-input.
-""")
-    arg = parser.add_argument
-    arg("--system", dest="system", default="ansi",
-            help="'iso' | 'hepburn' | 'ansi' | 'kunrei2' | 'road' | 'rail' | 'mofa'")
-    arg("-k", "--kunrei", dest="system", action="store_const", const="iso",
-            help="adopt ISO3602-compatible system aka `kunrei system'")
-    arg("--macron", dest="macron",
-            help="subst char for long vowel symbol; 'no' for nothing")
-    arg("--apostrophe", dest="apostrophe",
-            help="subst char for apostrophe e.g. hon'ya; 'no' for nothing")
-    arg("--m4n", dest="m4n", action="store_true",
-            help="use `m' instead of `n' before b/m/p e.g. kombu")
-    arg("-X", "--no-extend", dest="extend", action="store_false",
-            help="do not allow non-native pronounciation")
-    arg("--encoding", help="set input-encoding")
-    arg("-v", "--version", action="store_true", help="show version info")
-    arg("--test", action="store_true", help="test")
-    arg("words", nargs="*", metavar="word")
-    args = parser.parse_args()
-    if args.test:
+    args = docopt.docopt(__doc__.format(script=os.path.basename(__file__)),
+                        version=__version__)
+    if args["--test"]:
         import doctest
         doctest.testmod()
-        sys.exit(0)
-    if args.version:
-        cmd = os.path.basename(sys.argv[0])
-        print("{cmd} version {ver}".format(cmd=cmd, ver=__version__))
-        print(__copyright__)
-        sys.exit(0)
-    enc = args.encoding or sys.stdin.encoding or \
-            "cp932" if sys.platform.startswith("win") else "utf-8"
-    if (not args.macron) or (args.macron.upper() == "NO"):
-        args.macron = ""
-    if (not args.apostrophe) or (args.apostrophe.upper() == "NO"):
-        args.apostrophe == ""
-    roman = lambda s: romaji(s, system=args.system,
-                            macron=args.macron,
-                            apostrophe=args.apostrophe,
-                            m4n=args.m4n,
-                            extend=args.extend)
-    if args.words:
-        print(u" ".join(roman(word.decode(enc)) for word in args.words))
+        return
+    system = "ISO" if args["--kunrei"] else args["--system"]
+    if not system:
+        system = dict(
+                macron=args["--macron"] or "~",
+                apostrophe=args["--apostrophe"] or "'",
+                m4n=args["--m4n"] or False,
+                extend=(not args["--no-extend"]),
+                )
+    if system["macron"].upper() == "NO": system["macron"] = ""
+    if system["apostrophe"].upper() == "NO": system["apostrophe"] = ""
+    if args["WORD"]:
+        print(" ".join(roma(word, system) for word in args["WORD"]))
     else:
-        for line in codecs.getreader(enc)(sys.stdin):
-            print(u" ".join(roman(word) for word in line.split()))
+        for line in sys.stdin:
+            print(" ".join(roma(word, system) for word in line.split()))
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
