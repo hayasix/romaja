@@ -19,13 +19,15 @@ Options:
   --version             show version
   -s, --system NAME     'ANSI' | 'ISO' | 'HEPBURN' | 'KUNREI2' |
                         'ROAD' | 'RAIL' | 'MOFA' | 'TEST'
-  -k, --kunrei          adopt ISO3602 aka Kunrei-shiki
+  -k, --kunrei          adopt ISO3602:1989 aka Kunrei-shiki
+  -K, --kunrei2         adopt Kunrei-shiki with table 2
   --macron SYMBOL       subst char for long vowel [default: ~]
                         'NO' for nothing; '+' to double vowel
   --apostrophe SYMBOL   subst char after n before vowels [default: ']
                         'NO' for nothing
   --m4n                 replace n before b/m/p with m
   -X, --no-extend       do not allow non-native pronounciation
+  -c --composite        use composite chars
 """
 
 
@@ -34,7 +36,7 @@ import os
 import re
 
 
-__version__ = "3.0.0a2"
+__version__ = "3.0.0a3"
 __author__ = "HAYASI Hideki"
 __copyright__ = "Copyright (C) 2013 HAYASI Hideki <linxs@linxs.org>"
 __license__ = "ZPL 2.1"
@@ -64,12 +66,14 @@ KR = dict((k[v], c + "AIUEO"[v]) for (c, k) in list(KT.items()) for v in range(5
 RECIPE = { # system: (macron, apostrophe, m4n, extend)
     "ANSI":    dict(macron="~", apostrophe="'", m4n=False, extend=True),
     "HEPBURN": dict(macron="+", apostrophe="-", m4n=True, extend=True),
-    "KUNREI2": dict(macron="^", apostrophe="'", m4n=False, extend=True),
+    "KUNREI2": dict(macron="^", apostrophe="'", m4n=False, extend=False),
     "ROAD":    dict(macron="", apostrophe="-", m4n=False, extend=True),
     "RAIL":    dict(macron="~", apostrophe="-", m4n=True, extend=True),
     "MOFA":    dict(macron="", apostrophe="", m4n=True, extend=False),
     "ISO":     dict(macron="^", apostrophe="'", m4n=False, extend=False),
     }
+COMPOSITE = { "^": ("\u00c2", "\u00ce", "\u00db", "\u00ca", "\u00d4"),
+              "~": ("\u0100", "\u012a", "\u016a", "\u0112", "\u014c") }
 
 
 def _translate(s, in_, out):
@@ -87,25 +91,29 @@ def h2k(s):
     return "".join(ss)
 
 
+def use_composite(s, macron):
+    return _translate(s, " ".join(c + macron for c in "AIUEO"),
+                         " ".join(COMPOSITE[macron]))
+
+
 def iso3602(s):
-    """Convert kana to its roman repr in ISO style (aka Kunrei-shiki).
+    """Convert katakana to its roman repr in ISO style (aka Kunrei-shiki).
 
     s           (unicode) source text
 
     Example:
-    >>> assert iso3602(u"かんだ") == u"KANDA"
-    >>> assert iso3602(u"かんなみ") == u"KANNAMI"
-    >>> assert iso3602(u"しんじゅく") == u"SINZYUKU"
+    >>> assert iso3602(u"カンダ") == u"KANDA"
+    >>> assert iso3602(u"カンナミ") == u"KANNAMI"
+    >>> assert iso3602(u"シンジュク") == u"SINZYUKU"
     >>> assert iso3602(u"チェック") == u"TIEKKU"
-    >>> assert iso3602(u"しんばし") == u"SINBASI"
+    >>> assert iso3602(u"シンバシ") == u"SINBASI"
     >>> assert iso3602(u"チェンマイ") == u"TIENMAI"
-    >>> assert iso3602(u"さんあい") == u"SAN'AI"
-    >>> assert iso3602(u"こんやく") == u"KON'YAKU"
+    >>> assert iso3602(u"サンアイ") == u"SAN'AI"
+    >>> assert iso3602(u"コンヤク") == u"KON'YAKU"
     >>> assert iso3602(u"カード") == u"KA^DO"
     >>> assert iso3602(u"ジェラシー") == u"ZIERASI^"
-    >>> assert iso3602(u"まっちゃ") == u"MATTYA"
+    >>> assert iso3602(u"マッチャ") == u"MATTYA"
     """
-    s = h2k(s)
     s = _translate(s, "ヰ ヱ ヲ ヂ ヅ ウ゛ ヴ", "イ エ オ ジ ズ ヴ ブ")
     s = _translate(s, "ァ ィ ゥ ェ ォ", "XA XI XU XE XO")
     s = _translate(s, "ン", "N'")
@@ -138,13 +146,14 @@ def iso3602(s):
     return s
 
 
-def roma(s, system="ANSI"):
+def roma(s, system="ANSI", composite=False):
     """Convert kana to its roman repr in various styles.
 
     s           (unicode) source text
     system      (str) 'ANSI' | 'ISO' | 'HEPBURN' | 'KUNREI2' |
                       'ROAD' | 'RAIL' | 'MOFA'  [default: ANSI]
                 (dict) conversion specification
+    composite   (bool) use chars with composite glyphs
 
     Keys and values of conversion specification are as follows::
         macron      (str) '^' | '~' | '+' | 'H' | '';
@@ -159,97 +168,110 @@ def roma(s, system="ANSI"):
         ANSI    ~       '           False   True
         ISO     ~       '           False   False
         HEPBURN +       -           True    True
-        KUNREI2 ~       '           False   True
+        KUNREI2 ~       '           False   False
         ROAD    (none)  -           False   True
         RAIL    ~       -           True    True
         MOFA    (none)  (none)      True    False
 
     Test:
-    >>> assert roma(u"かんだ", "ANSI") == u"KANDA"
-    >>> assert roma(u"かんなみ", "ANSI") == u"KANNAMI"
-    >>> assert roma(u"しんじゅく", "ANSI") == u"SHINJUKU"
-    >>> assert roma(u"チェック", "ANSI") == u"CHEKKU"
-    >>> assert roma(u"しんばし", "ANSI") == u"SHINBASHI"
-    >>> assert roma(u"チェンマイ", "ANSI") == u"CHENMAI"
-    >>> assert roma(u"さんあい", "ANSI") == u"SAN'AI"
-    >>> assert roma(u"こんやく", "ANSI") == u"KON'YAKU"
-    >>> assert roma(u"カード", "ANSI") == u"KA~DO"
-    >>> assert roma(u"ジェラシー", "ANSI") == u"JERASHI~"
-    >>> assert roma(u"まっちゃ", "ANSI") == u"MATCHA"
-    >>> assert roma(u"かんだ", "ISO") == u"KANDA"
-    >>> assert roma(u"かんなみ", "ISO") == u"KANNAMI"
-    >>> assert roma(u"しんじゅく", "ISO") == u"SINZYUKU"
-    >>> assert roma(u"チェック", "ISO") == u"TIEKKU"
-    >>> assert roma(u"しんばし", "ISO") == u"SINBASI"
-    >>> assert roma(u"チェンマイ", "ISO") == u"TIENMAI"
-    >>> assert roma(u"さんあい", "ISO") == u"SAN'AI"
-    >>> assert roma(u"こんやく", "ISO") == u"KON'YAKU"
-    >>> assert roma(u"カード", "ISO") == u"KA^DO"
-    >>> assert roma(u"ジェラシー", "ISO") == u"ZIERASI^"
-    >>> assert roma(u"まっちゃ", "ISO") == u"MATTYA"
-    >>> assert roma(u"かんだ", "HEPBURN") == u"KANDA"
-    >>> assert roma(u"かんなみ", "HEPBURN") == u"KANNAMI"
-    >>> assert roma(u"しんじゅく", "HEPBURN") == u"SHINJUKU"
-    >>> assert roma(u"チェック", "HEPBURN") == u"CHEKKU"
-    >>> assert roma(u"しんばし", "HEPBURN") == u"SHIMBASHI"
-    >>> assert roma(u"チェンマイ", "HEPBURN") == u"CHEMMAI"
-    >>> assert roma(u"さんあい", "HEPBURN") == u"SAN-AI"
-    >>> assert roma(u"こんやく", "HEPBURN") == u"KON-YAKU"
-    >>> assert roma(u"カード", "HEPBURN") == u"KAADO"
-    >>> assert roma(u"ジェラシー", "HEPBURN") == u"JERASHII"
-    >>> assert roma(u"まっちゃ", "HEPBURN") == u"MATCHA"
-    >>> assert roma(u"かんだ", "KUNREI2") == u"KANDA"
-    >>> assert roma(u"かんなみ", "KUNREI2") == u"KANNAMI"
-    >>> assert roma(u"しんじゅく", "KUNREI2") == u"SHINJUKU"
-    >>> assert roma(u"チェック", "KUNREI2") == u"CHEKKU"
-    >>> assert roma(u"しんばし", "KUNREI2") == u"SHINBASHI"
-    >>> assert roma(u"チェンマイ", "KUNREI2") == u"CHENMAI"
-    >>> assert roma(u"さんあい", "KUNREI2") == u"SAN'AI"
-    >>> assert roma(u"こんやく", "KUNREI2") == u"KON'YAKU"
-    >>> assert roma(u"カード", "KUNREI2") == u"KA^DO"
-    >>> assert roma(u"ジェラシー", "KUNREI2") == u"JERASHI^"
-    >>> assert roma(u"まっちゃ", "KUNREI2") == u"MACCHA"
-    >>> assert roma(u"かんだ", "ROAD") == u"KANDA"
-    >>> assert roma(u"かんなみ", "ROAD") == u"KANNAMI"
-    >>> assert roma(u"しんじゅく", "ROAD") == u"SHINJUKU"
-    >>> assert roma(u"チェック", "ROAD") == u"CHEKKU"
-    >>> assert roma(u"しんばし", "ROAD") == u"SHINBASHI"
-    >>> assert roma(u"チェンマイ", "ROAD") == u"CHENMAI"
-    >>> assert roma(u"さんあい", "ROAD") == u"SAN-AI"
-    >>> assert roma(u"こんやく", "ROAD") == u"KON-YAKU"
-    >>> assert roma(u"カード", "ROAD") == u"KADO"
-    >>> assert roma(u"ジェラシー", "ROAD") == u"JERASHII"
-    >>> assert roma(u"まっちゃ", "ROAD") == u"MATCHA"
-    >>> assert roma(u"かんだ", "RAIL") == u"KANDA"
-    >>> assert roma(u"かんなみ", "RAIL") == u"KANNAMI"
-    >>> assert roma(u"しんじゅく", "RAIL") == u"SHINJUKU"
-    >>> assert roma(u"チェック", "RAIL") == u"CHEKKU"
-    >>> assert roma(u"しんばし", "RAIL") == u"SHIMBASHI"
-    >>> assert roma(u"チェンマイ", "RAIL") == u"CHEMMAI"
-    >>> assert roma(u"さんあい", "RAIL") == u"SAN-AI"
-    >>> assert roma(u"こんやく", "RAIL") == u"KON-YAKU"
-    >>> assert roma(u"カード", "RAIL") == u"KA~DO"
-    >>> assert roma(u"ジェラシー", "RAIL") == u"JERASHI~"
-    >>> assert roma(u"まっちゃ", "RAIL") == u"MATCHA"
-    >>> assert roma(u"かんだ", "MOFA") == u"KANDA"
-    >>> assert roma(u"かんなみ", "MOFA") == u"KANNAMI"
-    >>> assert roma(u"しんじゅく", "MOFA") == u"SHINJUKU"
-    >>> assert roma(u"チェック", "MOFA") == u"CHIEKKU"
-    >>> assert roma(u"しんばし", "MOFA") == u"SHIMBASHI"
-    >>> assert roma(u"チェンマイ", "MOFA") == u"CHIEMMAI"
-    >>> assert roma(u"さんあい", "MOFA") == u"SANAI"
-    >>> assert roma(u"こんやく", "MOFA") == u"KONYAKU"
-    >>> assert roma(u"カード", "MOFA") == u"KADO"
-    >>> assert roma(u"ジェラシー", "MOFA") == u"JIERASHII"
-    >>> assert roma(u"まっちゃ", "MOFA") == u"MATCHA"
+    >>> assert roma("かんだ", "ANSI") == "KANDA"
+    >>> assert roma("かんなみ", "ANSI") == "KANNAMI"
+    >>> assert roma("しんじゅく", "ANSI") == "SHINJUKU"
+    >>> assert roma("チェック", "ANSI") == "CHEKKU"
+    >>> assert roma("しんばし", "ANSI") == "SHINBASHI"
+    >>> assert roma("チェンマイ", "ANSI") == "CHENMAI"
+    >>> assert roma("さんあい", "ANSI") == "SAN'AI"
+    >>> assert roma("こんやく", "ANSI") == "KON'YAKU"
+    >>> assert roma("カード", "ANSI") == "KA~DO"
+    >>> assert roma("ジェラシー", "ANSI") == "JERASHI~"
+    >>> assert roma("まっちゃ", "ANSI") == "MATCHA"
+    >>> assert roma("かんだ", "ISO") == "KANDA"
+    >>> assert roma("かんなみ", "ISO") == "KANNAMI"
+    >>> assert roma("しんじゅく", "ISO") == "SINZYUKU"
+    >>> assert roma("チェック", "ISO") == "TIEKKU"
+    >>> assert roma("しんばし", "ISO") == "SINBASI"
+    >>> assert roma("チェンマイ", "ISO") == "TIENMAI"
+    >>> assert roma("さんあい", "ISO") == "SAN'AI"
+    >>> assert roma("こんやく", "ISO") == "KON'YAKU"
+    >>> assert roma("カード", "ISO") == "KA^DO"
+    >>> assert roma("ジェラシー", "ISO") == "ZIERASI^"
+    >>> assert roma("まっちゃ", "ISO") == "MATTYA"
+    >>> assert roma("かんだ", "HEPBURN") == "KANDA"
+    >>> assert roma("かんなみ", "HEPBURN") == "KANNAMI"
+    >>> assert roma("しんじゅく", "HEPBURN") == "SHINJUKU"
+    >>> assert roma("チェック", "HEPBURN") == "CHEKKU"
+    >>> assert roma("しんばし", "HEPBURN") == "SHIMBASHI"
+    >>> assert roma("チェンマイ", "HEPBURN") == "CHEMMAI"
+    >>> assert roma("さんあい", "HEPBURN") == "SAN-AI"
+    >>> assert roma("こんやく", "HEPBURN") == "KON-YAKU"
+    >>> assert roma("カード", "HEPBURN") == "KAADO"
+    >>> assert roma("ジェラシー", "HEPBURN") == "JERASHII"
+    >>> assert roma("まっちゃ", "HEPBURN") == "MATCHA"
+    >>> assert roma("かんだ", "KUNREI2") == "KANDA"
+    >>> assert roma("かんなみ", "KUNREI2") == "KANNAMI"
+    >>> assert roma("しんじゅく", "KUNREI2") == "SHINJUKU"
+    >>> assert roma("チェック", "KUNREI2") == "CHIEKKU"
+    >>> assert roma("しんばし", "KUNREI2") == "SHINBASHI"
+    >>> assert roma("チェンマイ", "KUNREI2") == "CHIENMAI"
+    >>> assert roma("さんあい", "KUNREI2") == "SAN'AI"
+    >>> assert roma("こんやく", "KUNREI2") == "KON'YAKU"
+    >>> assert roma("カード", "KUNREI2") == "KA^DO"
+    >>> assert roma("ジェラシー", "KUNREI2") == "JIERASHI^"
+    >>> assert roma("まっちゃ", "KUNREI2") == "MACCHA"
+    >>> assert roma("しゃししゅしょつ", "KUNREI2") == "SHASHISHUSHOTSU"
+    >>> assert roma("ちゃちちゅちょ", "KUNREI2") == "CHACHICHUCHO"
+    >>> assert roma("ふじゃじじゅじょ", "KUNREI2") == "FUJAJIJUJO"
+    >>> assert roma("ぢづぢゃぢゅぢょ", "KUNREI2") == "DIDUDYADYUDYO"
+    >>> assert roma("くゎぐゎを", "KUNREI2") == "KWAGWAWO"
+    >>> assert roma("かんだ", "ROAD") == "KANDA"
+    >>> assert roma("かんなみ", "ROAD") == "KANNAMI"
+    >>> assert roma("しんじゅく", "ROAD") == "SHINJUKU"
+    >>> assert roma("チェック", "ROAD") == "CHEKKU"
+    >>> assert roma("しんばし", "ROAD") == "SHINBASHI"
+    >>> assert roma("チェンマイ", "ROAD") == "CHENMAI"
+    >>> assert roma("さんあい", "ROAD") == "SAN-AI"
+    >>> assert roma("こんやく", "ROAD") == "KON-YAKU"
+    >>> assert roma("カード", "ROAD") == "KADO"
+    >>> assert roma("ジェラシー", "ROAD") == "JERASHII"
+    >>> assert roma("まっちゃ", "ROAD") == "MATCHA"
+    >>> assert roma("かんだ", "RAIL") == "KANDA"
+    >>> assert roma("かんなみ", "RAIL") == "KANNAMI"
+    >>> assert roma("しんじゅく", "RAIL") == "SHINJUKU"
+    >>> assert roma("チェック", "RAIL") == "CHEKKU"
+    >>> assert roma("しんばし", "RAIL") == "SHIMBASHI"
+    >>> assert roma("チェンマイ", "RAIL") == "CHEMMAI"
+    >>> assert roma("さんあい", "RAIL") == "SAN-AI"
+    >>> assert roma("こんやく", "RAIL") == "KON-YAKU"
+    >>> assert roma("カード", "RAIL") == "KA~DO"
+    >>> assert roma("ジェラシー", "RAIL") == "JERASHI~"
+    >>> assert roma("まっちゃ", "RAIL") == "MATCHA"
+    >>> assert roma("かんだ", "MOFA") == "KANDA"
+    >>> assert roma("かんなみ", "MOFA") == "KANNAMI"
+    >>> assert roma("しんじゅく", "MOFA") == "SHINJUKU"
+    >>> assert roma("チェック", "MOFA") == "CHIEKKU"
+    >>> assert roma("しんばし", "MOFA") == "SHIMBASHI"
+    >>> assert roma("チェンマイ", "MOFA") == "CHIEMMAI"
+    >>> assert roma("さんあい", "MOFA") == "SANAI"
+    >>> assert roma("こんやく", "MOFA") == "KONYAKU"
+    >>> assert roma("カード", "MOFA") == "KADO"
+    >>> assert roma("ジェラシー", "MOFA") == "JIERASHII"
+    >>> assert roma("まっちゃ", "MOFA") == "MATCHA"
     """
+    s = h2k(s)
     if isinstance(system, str):
         system = (system or "ANSI").upper()
-        if system == "ISO": return iso3602(s)
+        if system == "ISO":
+            s = iso3602(s)
+            if composite: s = use_composite(s, "^")
+            return s
+        if system == "KUNREI2":
+            s = _translate(s,
+                    "ヂ ヅ ヂャ ヂュ ヂョ ヲ",
+                    "DI DU DYA DYU DYO WO")
         system = RECIPE[system]
-    s = h2k(s)
+    s = _translate(s, "クヮ グヮ", "KWA GWA")
     if system["extend"]:
-        s = _translate(h2k(s),
+        s = _translate(s,
                 ("イェ ウィ ウェ ウォ ヴァ ヴィ ヴェ ヴォ ヴュ ヴ "
                  "スィ シェ ズィ ジェ ティ トゥ チェ ディ ドゥ ヂェ "
                  "ツァ ツィ ツェ ツォ ファ フィ フェ フォ"),
@@ -261,15 +283,18 @@ def roma(s, system="ANSI"):
         s = re.sub(r"N([BMP])", r"M\1", s)
     s = _translate(s, "HU SI ZI TI TU SY ZY TY Sh Zh Th sI",
                       "FU SHI JI CHI TSU SH J CH S Z T SI")
-    if system["macron"] == "+":
+    m = system["macron"]
+    if m == "+":
         s = _translate(s, "A^ I^ U^ E^ O^", "AA II UU EE OO")
-    elif system["macron"].upper() == "H":
+    elif m.upper() == "H":
         s = _translate(s, "A^ I^ U^ E^ O^", "AH II U E OH")
-    elif not system["macron"]:
+    elif not m:
         s = _translate(s, "A^ I^ U^ E^ O^", "A II U E O")
-    elif system["macron"] != "^":
-        s = s.replace("^", system["macron"])
-    if system["macron"] == "^":
+    elif m != "^":
+        s = s.replace("^", m)
+    if composite and m in COMPOSITE:
+        s = use_composite(s, m)
+    if m == "^":
         s = s.replace("TCH", "CCH")
     if system["apostrophe"] != "'":
         s = s.replace("'", system["apostrophe"])
@@ -287,8 +312,8 @@ def main():
 
     args = docopt.docopt(__doc__.format(script=os.path.basename(__file__)),
                         version=__version__)
-    if args["--kunrei"]:
-        system = "ISO"
+    if args["--kunrei"]: system = "ISO"
+    elif args["--kunrei2"]: system = "KUNREI2"
     elif args["--system"]:
         system = args["--system"].upper()
         if system == "TEST":
@@ -304,11 +329,12 @@ def main():
                 )
         if system["macron"].upper() == "NO": system["macron"] = ""
         if system["apostrophe"].upper() == "NO": system["apostrophe"] = ""
+    c = args["--composite"]
     if args["WORD"]:
-        print(" ".join(roma(word, system) for word in args["WORD"]))
+        print(" ".join(roma(word, system, c) for word in args["WORD"]))
     else:
         for line in sys.stdin:
-            print(" ".join(roma(word, system) for word in line.split()))
+            print(" ".join(roma(word, system, c) for word in line.split()))
 
 
 if __name__ == "__main__":
