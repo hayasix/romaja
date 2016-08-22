@@ -14,8 +14,8 @@ setup(
     license = __license__,
     platforms = ["generic"],
     py_modules = ["romaja"],
-    console = [ dict(script = "romaja.py",), ],
     zipfile = "romaja.zip",
+    install_requires = ["docopt>=0.6.2",],
     entry_points = dict(
             console_scripts = ["romaja=romaja:main"],
             ),
