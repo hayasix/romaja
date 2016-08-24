@@ -3,26 +3,25 @@ README
 ======
 
 | 2013-04-05 HAYASI,Hideki
-| 2016-08-20 HAYASI,Hideki
+| 2016-08-25 HAYASI,Hideki
 
 
-Abstract
-========
+Preface
+=======
 
 This archive contains a Python module which offers various ways to
 transliterate Japanese words written in Katakana/Hiragana into Romanized
 representation.
 
-All programs, data, documents or files in this archive, including this
-document, are copyrighted materials owned by HAYASI,Hideki, "Author"
-hereinafter, and Author reserves all rights on them, except as noted
-specifically.
+All programs, data, documents or files in this archive are copyrighted
+materials owned by HAYASI,Hideki, "Author" hereinafter, and Author
+reserves all rights on them, except as noted specifically.
 
     Copyright (C) 2013 HAYASI Hideki.  All rights reserved.
 
 Python is a (registered) trademark of Python Software Foundation (PSF)
-and all intellectual property rights of Python belongs to PSF.
-For further information, visit: http://www.python.org/about/legal/
+and all intellectual property rights of Python belong to PSF.
+For further information, visit http://www.python.org/about/legal/
 
 
 System Requirements
@@ -40,22 +39,22 @@ Zope Public License (ZPL) Version 2.1
 Contents
 ========
 
-:README.rst:
-:README_ja.rst:
+README.rst
+    This document.
 
-    This document and its Japanese version.
+README_ja.rst
+    README in Japanese.
 
-:LICENSE:
-:LICENSE.ja:
+LICENSE
+    Zope Public License (ZPL) Version 2.1.
 
-    Zope Public License (ZPL) Version 2.1 and its Japanese version.
+LICENSE.ja
+    ZPL in Japanese (unofficial).
 
-:romaja.py:
-
+romaja.py
     The module.
 
-:setup.py:
-
+setup.py
     Installation script.
 
 
@@ -64,9 +63,9 @@ Usage
 
 ``romaja.py`` offers the folowing module functions.
 
-:roma(KANAWORD, system='ANSI', composite=False):
+``roma(KANAWORDS, system='ANSI', composite=False)``
 
-    Transliterates Japanese Katakana/Hiragana words in KANAWORD into
+    Transliterates Japanese Katakana/Hiragana words in KANAWORDS into
     Romanized representation i.e. Romaji, according to (obsolete) ANSI
     specification by default.  ``system`` can be a ``str`` or ``dict``,
     as described in the next section.  ``composite`` determines if
@@ -76,15 +75,15 @@ Usage
 Following two functions are preserved for compatibility.  They are
 deprecated and will be removed in the near future.
 
-:romazi(KANAWORD):
+``romazi(KANAWORDS)``
 
-    Transliterates Japanese Katanaka/Hiragana words in KANAWORD into
+    Transliterates Japanese Katanaka/Hiragana words in KANAWORDS into
     Romanized representation i.e. Romaji, according to the official
     Kunrei-shiki system.
 
-:romaji(KANAWORD):
+``romaji(KANAWORDS)``
 
-    Transliterates Japanese Katanaka/Hiragana words in KANAWORD into
+    Transliterates Japanese Katanaka/Hiragana words in KANAWORDS into
     Romanized representation i.e. Romaji, according to the de-facto
     modern Hepburn system.
 
@@ -168,7 +167,7 @@ Command Line Tool
 =================
 
 As a CUI command, ``romaja.py`` transliterates Japanese words written in
-Katakana/Hiragana read from command line arguments or stdin.::
+Katakana/Hiragana read from command line arguments or stdin::
 
     $ python romaja.py ローマじ へんかん は めんどう だ。
     RO~MAJI HENKAN HA MENDO~ DA。
@@ -176,24 +175,24 @@ Katakana/Hiragana read from command line arguments or stdin.::
 Tildes (``~``) are used as substitutive symbols for macrons.  Assigning
 ``'ISO'`` or ``'KUNREI2'`` for ``system``, circumflexes (``^``) will be
 used.  To represent long vowels in composite (accented) letters, add
-option ``--composite`` or ``-c``.
+option ``--composite`` or ``-c`` [1]_::
 
     $ py romaja.py -c ローマじ へんかん は めんどう だ。
     RŌMAJI HENKAN HA MENDŌ DA。
 
-(Unfortunately composite letters are displayed in the same way as non-
-accented ones in some environments.)
+.. [1] Composite letters may be displayed in the same way as
+    non-accented ones in some environments.
 
 To feed a null string for ``macron`` or ``apostrophe``, use ``'NO'``
 instead.
 
 
-Disclaimers
-===========
+Disclaimer
+==========
 
 All contents of this archive are intended for non-critical use and may
 contain errors.  Author does not provide any guarantee on this program
-to meet with any specific use.
+to meet with any particular use.  For more information, read LICENSE.
 
 This program does not perform morphological analysis, which is required
 for strict Romanization of Japanese.  To get more precise results, try

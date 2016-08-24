@@ -1,7 +1,7 @@
 Rem EXCEL VBA version
 Rem vim: set fileencoding=utf-8 fileformat=unix :
 
-Rem Version: 3.0.0
+Rem Version: 3.0.1
 Rem Author: HAYASI Hideki
 Rem Copyright: Copyright (C) 2013 HAYASI Hideki <linxs@linxs.org>
 Rem License: ZPL 2.1
