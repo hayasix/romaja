@@ -36,7 +36,7 @@ import os
 import re
 
 
-__version__ = "3.0.2"
+__version__ = "3.0.3"
 __author__ = "HAYASI Hideki"
 __copyright__ = "Copyright (C) 2013 HAYASI Hideki <linxs@linxs.org>"
 __license__ = "ZPL 2.1"

@@ -140,11 +140,11 @@ MOFA
     Japanese MOFA (Ministry of Foreign Affairs) system.  A long vowel is
     represented in the same way as the short one.  Nothing is placed
     after 'N' even if a vowel follows.  The 'N' sound is written with an
-    'M' if a plosive or nasal sound follows.  This
-    system does not allow non-native (non-Japanese) sound like 'Di'.
-    Such sound is converted into a sequence of native sound like 'Dei'.
-    CAUTION: MOFA actually allows derivative spelling for names of non-
-    native people upon application.
+    'M' if a plosive or nasal sound follows.  This system does not allow
+    non-native (non-Japanese) sound like 'Di'.  Such sound is converted
+    into a sequence of native sound like 'Dei'.  CAUTION: MOFA actually
+    allows derivative spelling for names of non-native people upon
+    application.
 
 The default value is 'ANSI'.
 
