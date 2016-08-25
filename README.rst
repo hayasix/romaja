@@ -61,45 +61,50 @@ setup.py
 Usage
 =====
 
-``romaja.py`` offers the folowing module functions.
+romaja.py offers the folowing module functions.
 
-``roma(KANAWORDS, system='ANSI', composite=False)``
-
+roma(KANAWORDS, system='ANSI', composite=False)
     Transliterates Japanese Katakana/Hiragana words in KANAWORDS into
     Romanized representation i.e. Romaji, according to (obsolete) ANSI
-    specification by default.  ``system`` can be a ``str`` or ``dict``,
-    as described in the next section.  ``composite`` determines if
+    specification by default.  `system` can be a ``str`` or ``dict``,
+    as described in the next section.  `composite` determines if
     composite (accented) letters are used for long vowels.  Note that
     composite letters are out of ASCII charset.
 
 Following two functions are preserved for compatibility.  They are
 deprecated and will be removed in the near future.
 
-``romazi(KANAWORDS)``
-
+romazi(KANAWORDS)
     Transliterates Japanese Katanaka/Hiragana words in KANAWORDS into
     Romanized representation i.e. Romaji, according to the official
     Kunrei-shiki system.
 
-``romaji(KANAWORDS)``
-
+romaji(KANAWORDS)
     Transliterates Japanese Katanaka/Hiragana words in KANAWORDS into
     Romanized representation i.e. Romaji, according to the de-facto
     modern Hepburn system.
 
-Arguments for ``system``
-========================
+Transliteration Systems
+=======================
 
-``system`` can be a ``str`` as followings.
+There is a variety of transliteration (Romanization) systems for
+Japanese.  `system` keyword argument determines which system is used,
+and furthermore, customizes how the Romanization is performed.
 
-``'ANSI'``
+Prebuilt Systems
+----------------
+
+Assigning a ``str`` to `system` means a choice of prebuilt trans-
+literation system among the ones listed below.
+
+ANSI
     Modern Hepburn system or (obsolete) ANSI Z39.11-1972.  A long vowel
     is expressed by a macron, or a straight line over the vowel letter.
     An apostrophe is placed just after 'N' if a vowel or contracted
     sound, ya, yu or yo, follows.  The syllabic (moraic) 'N' sound
     (nasal) is usually written with an 'N'.
 
-``'ISO'``
+ISO
     ISO3602:1989 or Kunrei-shiki system only with Table 1.  A long vowel
     is represented by a circumflex.  An apostrophe is placed just after
     'N' if a vowel follows.  The syllabic (moraic) 'N' sound (nasal) is
@@ -107,31 +112,31 @@ Arguments for ``system``
     (non-Japanese) sound like 'Di'.  Such sound is converted into a
     sequence of native sound like 'Dei'.
 
-``'KUNREI2'``
+KUNREI2
     Kunrei-shiki with Table 2.  Note: 'SHI', 'JI', 'CHA' might be used.
     'MACCHA' is used instead of 'MATCHA'.  An apostrophe is placed just
     after 'N' if a vowel or contracted sound follows.  The 'N' sound is
     usually written with an 'N'.
 
-``'HEPBURN'``
+HEPBURN
     Traditional Hepburn system.  A long vowel is represented with
     doubled letter such as 'aa'.  A hyphen is placed just after 'N' if
     a vowel follows.  The 'N' sound is written with an 'M' if a plosive
     or nasal sound, 'b', 'p' and 'm', follows.
 
-``'ROAD'``
+ROAD
     Road sign system.  A long vowel is represented in the same way as
     a short one.  A hyphen is placed just after 'N' if a vowel or
     contracted sound follows.  The 'N' sound is usually written with an
     'N'.
 
-``'RAIL'``
+RAIL
     Railway station name system.  A long vowel is represented with a
     macron.  A hyphen is placed just after 'N' if a vowel or contracted
     sound follows.  The 'N' sound is written with an 'M' if a plosive or
     nasal sound follows.
 
-``'MOFA'``
+MOFA
     Japanese MOFA (Ministry of Foreign Affairs) system.  A long vowel is
     represented in the same way as the short one.  Nothing is placed
     after 'N' even if a vowel follows.  The 'N' sound is written with an
@@ -141,25 +146,29 @@ Arguments for ``system``
     CAUTION: MOFA actually allows derivative spelling for names of non-
     native people upon application.
 
-The default value is ``'ANSI'``.
+The default value is 'ANSI'.
 
-``system`` can also be a ``dict`` which has all of the following keys.
+Custom System
+-------------
 
-``'macron'``
-    A symbol to represent a long vowel.  ``'+'`` means doubled letters.
-    ``'H'`` means placing an ``'H'`` just after 'A' and 'O', doubling
-    'I' and no operation for 'U' and 'E'.  ``''`` (null) means no
-    operation for long vowels.
+Assigning a ``dict`` to `system` customizes the way of transliteration.
+Key values are as follows, all of which are required.
 
-``'apostrophe'``
+macron
+    A symbol to represent a long vowel.  '+' means doubled letters.
+    'H' means placing an 'H' just after 'A' and 'O', doubling 'I' and
+    no operation for 'U' and 'E'.  '' (null) means no operation for long
+    vowels.
+
+apostrophe
     A character to place just after 'N' if a vowel or contracted sound
     follows.
 
-``'m4n'``
+m4n
     True to write 'N' sound with an 'M' if a plosive or nasal sound
     follows.
 
-``'extend'``
+extend
     True to express non-native sound like 'Di'.  False to strictly
     comply with ISO3602:1989 or Kunrei-shiki only with Table 1.
 
@@ -173,9 +182,9 @@ Katakana/Hiragana read from command line arguments or stdin::
     RO~MAJI HENKAN HA MENDO~ DA。
 
 Tildes (``~``) are used as substitutive symbols for macrons.  Assigning
-``'ISO'`` or ``'KUNREI2'`` for ``system``, circumflexes (``^``) will be
-used.  To represent long vowels in composite (accented) letters, add
-option ``--composite`` or ``-c`` [1]_::
+'ISO' or 'KUNREI2' to `system`, circumflexes (``^``) will be used.  To
+represent long vowels in composite (accented) letters, add ``--composite``
+or ``-c`` option [1]_::
 
     $ py romaja.py -c ローマじ へんかん は めんどう だ。
     RŌMAJI HENKAN HA MENDŌ DA。
@@ -183,8 +192,7 @@ option ``--composite`` or ``-c`` [1]_::
 .. [1] Composite letters may be displayed in the same way as
     non-accented ones in some environments.
 
-To feed a null string for ``macron`` or ``apostrophe``, use ``'NO'``
-instead.
+To assign nothing to `macron` or `apostrophe`, use ``NO`` instead.
 
 
 Disclaimer
