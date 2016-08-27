@@ -3,7 +3,7 @@ README
 ======
 
 | 2013-04-05 HAYASI,Hideki
-| 2016-08-25 HAYASI,Hideki
+| 2016-08-27 HAYASI,Hideki
 
 
 Preface
@@ -99,16 +99,16 @@ literation system among the ones listed below.
 
 ANSI
     Modern Hepburn system or (obsolete) ANSI Z39.11-1972.  A long vowel
-    is expressed by a macron, or a straight line over the vowel letter.
-    An apostrophe is placed just after 'N' if a vowel or contracted
-    sound, ya, yu or yo, follows.  The syllabic (moraic) 'N' sound
-    (nasal) is usually written with an 'N'.
+    is represented with a macron, or a straight line over the vowel
+    letter.  An apostrophe is placed just after 'N' if a vowel or
+    contracted sound, ya, yu or yo, follows.  The syllabic (moraic) 'N'
+    sound (nasal) is always written with an 'N'.
 
 ISO
     ISO3602:1989 or Kunrei-shiki system only with Table 1.  A long vowel
     is represented by a circumflex.  An apostrophe is placed just after
     'N' if a vowel follows.  The syllabic (moraic) 'N' sound (nasal) is
-    usually written with an 'N'.  This system does not allow non-native
+    always written with an 'N'.  This system does not allow non-native
     (non-Japanese) sound like 'Di'.  Such sound is converted into a
     sequence of native sound like 'Dei'.
 
@@ -116,7 +116,7 @@ KUNREI2
     Kunrei-shiki with Table 2.  Note: 'SHI', 'JI', 'CHA' might be used.
     'MACCHA' is used instead of 'MATCHA'.  An apostrophe is placed just
     after 'N' if a vowel or contracted sound follows.  The 'N' sound is
-    usually written with an 'N'.
+    always written with an 'N'.
 
 HEPBURN
     Traditional Hepburn system.  A long vowel is represented with
@@ -127,7 +127,7 @@ HEPBURN
 ROAD
     Road sign system.  A long vowel is represented in the same way as
     a short one.  A hyphen is placed just after 'N' if a vowel or
-    contracted sound follows.  The 'N' sound is usually written with an
+    contracted sound follows.  The 'N' sound is always written with an
     'N'.
 
 RAIL
@@ -154,13 +154,13 @@ Custom System
 Assigning a ``dict`` to `system` customizes the way of transliteration.
 Key values are as follows, all of which are required.
 
-macron
+long
     A symbol to represent a long vowel.  '+' means doubled letters.
     'H' means placing an 'H' just after 'A' and 'O', doubling 'I' and
     no operation for 'U' and 'E'.  '' (null) means no operation for long
     vowels.
 
-apostrophe
+sep
     A character to place just after 'N' if a vowel or contracted sound
     follows.
 
@@ -192,7 +192,7 @@ or ``-c`` option [1]_::
 .. [1] Composite letters may be displayed in the same way as
     non-accented ones in some environments.
 
-To assign nothing to `macron` or `apostrophe`, use ``NO`` instead.
+To assign nothing to `long` or `sep`, use ``NO`` instead.
 
 
 Disclaimer

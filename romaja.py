@@ -21,9 +21,9 @@ Options:
                         'ROAD' | 'RAIL' | 'MOFA' | 'TEST'
   -k, --kunrei          adopt ISO3602:1989 aka Kunrei-shiki
   -K, --kunrei2         adopt Kunrei-shiki with table 2
-  --macron SYMBOL       subst char for long vowel [default: ~]
+  --long SYMBOL         subst char for long vowel [default: ~]
                         'NO' for nothing; '+' to double vowel
-  --apostrophe SYMBOL   subst char after n before vowels [default: ']
+  --sep SYMBOL          subst char after n before vowels [default: ']
                         'NO' for nothing
   --m4n                 replace n before b/m/p with m
   -X, --no-extend       do not allow non-native pronounciation
@@ -34,9 +34,10 @@ Options:
 import sys
 import os
 import re
+from unicodedata import lookup
 
 
-__version__ = "3.0.3"
+__version__ = "3.1.0"
 __author__ = "HAYASI Hideki"
 __copyright__ = "Copyright (C) 2013 HAYASI Hideki <linxs@linxs.org>"
 __license__ = "ZPL 2.1"
@@ -62,18 +63,24 @@ KT = dict(
         R="ラリルレロ",
         W="ワヰ〓ヱヲ",
         )
-KR = dict((k[v], c + "AIUEO"[v]) for (c, k) in list(KT.items()) for v in range(5))
-RECIPE = { # system: (macron, apostrophe, m4n, extend)
-    "ANSI":    dict(macron="~", apostrophe="'", m4n=False, extend=True),
-    "HEPBURN": dict(macron="+", apostrophe="-", m4n=True, extend=True),
-    "KUNREI2": dict(macron="^", apostrophe="'", m4n=False, extend=False),
-    "ROAD":    dict(macron="", apostrophe="-", m4n=False, extend=True),
-    "RAIL":    dict(macron="~", apostrophe="-", m4n=True, extend=True),
-    "MOFA":    dict(macron="", apostrophe="", m4n=True, extend=False),
-    "ISO":     dict(macron="^", apostrophe="'", m4n=False, extend=False),
+KR = dict((k[v], c + "AIUEO"[v]) for (c, k) in list(KT.items())
+                                 for v in range(5))
+RECIPE = { # system: (long, sep, m4n, extend)
+    "ANSI":    dict(long="~", sep="'", m4n=False, extend=True),
+    "HEPBURN": dict(long="+", sep="-", m4n=True, extend=True),
+    "KUNREI2": dict(long="^", sep="'", m4n=False, extend=False),
+    "ROAD":    dict(long="", sep="-", m4n=False, extend=True),
+    "RAIL":    dict(long="~", sep="-", m4n=True, extend=True),
+    "MOFA":    dict(long="", sep="", m4n=True, extend=False),
+    "ISO":     dict(long="^", sep="'", m4n=False, extend=False),
     }
-COMPOSITE = { "^": ("\u00c2", "\u00ce", "\u00db", "\u00ca", "\u00d4"),
-              "~": ("\u0100", "\u012a", "\u016a", "\u0112", "\u014c") }
+ACCENTNAME = {
+    "~":    "MACRON",
+    "^":    "CIRCUMFLEX",
+    "'":    "ACUTE",
+    "`":    "GRAVE",
+    ":":    "DIAERESIS",
+    }
 
 
 def _translate(s, in_, out):
@@ -91,9 +98,13 @@ def h2k(s):
     return "".join(ss)
 
 
-def use_composite(s, macron):
-    return _translate(s, " ".join(c + macron for c in "AIUEO"),
-                         " ".join(COMPOSITE[macron]))
+def makecomposite(s, longmark):
+    accname = ACCENTNAME[longmark]
+    charname = "LATIN CAPITAL LETTER {} WITH {}"
+    for c in "AIUEO":
+        if c not in s: continue
+        s = s.replace(c + longmark, lookup(charname.format(c, accname)))
+    return s
 
 
 def iso3602(s):
@@ -156,14 +167,14 @@ def roma(s, system="ANSI", composite=False):
     composite   (bool) use chars with composite glyphs
 
     Keys and values of conversion specification are as follows::
-        macron      (str) '^' | '~' | '+' | 'H' | '';
-                          '+'=double vowel [default: ^]
-        apostrophe  (str) "'" | '-' | '' [default: ']
-        m4n         (bool) use m instead of n before b/m/p [default: False]
-        extend      (bool) allow non-native pronounciation [default: True]
+        long    (str) '^' | 'CIRCUMFLEX' | '~' | 'MACRON' |
+                      '+' | 'H' | ''; '+'=double vowel [default: ^]
+        sep     (str) "'" | '-' | '' [default: ']
+        m4n     (bool) use m instead of n before b/m/p [default: False]
+        extend  (bool) allow non-native pronounciation [default: True]
 
     Each system gives the following conversion specification:
-                macron  apostrophe  m4n     extend
+                long    sep         m4n     extend
         ------------------------------------------
         ANSI    ~       '           False   True
         ISO     ~       '           False   False
@@ -262,7 +273,7 @@ def roma(s, system="ANSI", composite=False):
         system = (system or "ANSI").upper()
         if system == "ISO":
             s = iso3602(s)
-            if composite: s = use_composite(s, "^")
+            if composite: s = makecomposite(s, "^")
             return s
         if system == "KUNREI2":
             s = _translate(s,
@@ -283,27 +294,31 @@ def roma(s, system="ANSI", composite=False):
         s = re.sub(r"N([BMP])", r"M\1", s)
     s = _translate(s, "HU SI ZI TI TU SY ZY TY Sh Zh Th sI",
                       "FU SHI JI CHI TSU SH J CH S Z T SI")
-    m = system["macron"]
-    if m == "+":
+    lng = system["long"].upper()
+    if lng == "MACRON": lng = "~"
+    elif lng == "CIRCUMFLEX": lng = "^"
+    if lng == "+":
         s = _translate(s, "A^ I^ U^ E^ O^", "AA II UU EE OO")
-    elif m.upper() == "H":
+    elif lng == "H":
         s = _translate(s, "A^ I^ U^ E^ O^", "AH II U E OH")
-    elif not m:
+    elif not lng:
         s = _translate(s, "A^ I^ U^ E^ O^", "A II U E O")
-    elif m != "^":
-        s = s.replace("^", m)
-    if composite and m in COMPOSITE:
-        s = use_composite(s, m)
-    if m == "^":
+    elif lng == "~":
+        s = s.replace("^", "~")
+    elif lng != "^":
+        raise ValueError("invalid long vowel symbol '{}'".format(lng))
+    if composite and lng:
+        s = makecomposite(s, lng)
+    if lng == "^":
         s = s.replace("TCH", "CCH")
-    if system["apostrophe"] != "'":
-        s = s.replace("'", system["apostrophe"])
+    if system["sep"] != "'":
+        s = s.replace("'", system["sep"])
     return s
 
 
 # COMPATIBILITY
 romazi = iso3602
-romaji = lambda s: roma(s)
+romaji = roma
 
 
 def main():
@@ -322,13 +337,13 @@ def main():
             return
     else:
         system = dict(
-                macron=args["--macron"] or "~",
-                apostrophe=args["--apostrophe"] or "'",
+                long=args["--long"] or "~",
+                sep=args["--sep"] or "'",
                 m4n=args["--m4n"] or False,
                 extend=(not args["--no-extend"]),
                 )
-        if system["macron"].upper() == "NO": system["macron"] = ""
-        if system["apostrophe"].upper() == "NO": system["apostrophe"] = ""
+        if system["long"].upper() == "NO": system["long"] = ""
+        if system["sep"].upper() == "NO": system["sep"] = ""
     c = args["--composite"]
     if args["WORD"]:
         print(" ".join(roma(word, system, c) for word in args["WORD"]))
