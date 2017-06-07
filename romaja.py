@@ -37,7 +37,7 @@ import re
 from unicodedata import lookup
 
 
-__version__ = "3.1.0"
+__version__ = "3.1.0.post1"
 __author__ = "HAYASI Hideki"
 __copyright__ = "Copyright (C) 2013 HAYASI Hideki <linxs@linxs.org>"
 __license__ = "ZPL 2.1"
