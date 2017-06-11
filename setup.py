@@ -1,4 +1,4 @@
-#/usr/bin/env python3.5
+#/usr/bin/env python3
 # vim: set fileencoding=utf-8 fileformat=unix :
 
 from setuptools import setup
@@ -29,7 +29,11 @@ setup(
     classifiers = [
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.2",
+        "Programming Language :: Python :: 3.3",
+        "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
         "License :: OSI Approved :: Zope Public License",
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",

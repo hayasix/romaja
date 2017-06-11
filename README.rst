@@ -3,7 +3,7 @@ README
 ======
 
 | 2013-04-05 HAYASI,Hideki
-| 2017-06-07 HAYASI,Hideki
+| 2017-06-11 HAYASI,Hideki
 
 
 Preface
@@ -27,7 +27,7 @@ For further information, visit http://www.python.org/about/legal/
 System Requirements
 ===================
 
-Python 3.5
+Python 3.2+
 
 
 License
@@ -66,8 +66,8 @@ romaja.py offers the folowing module functions.
 roma(KANAWORDS, system='ANSI', composite=False)
     Transliterates Japanese Katakana/Hiragana words in KANAWORDS into
     Romanized representation i.e. Romaji, according to (obsolete) ANSI
-    specification by default.  ``system`` can be a ``str`` or ``dict``,
-    as described in the next section.  ``composite`` determines if
+    specification by default.  `system` can be a ``str`` or ``dict``,
+    as described in the next section.  `composite` determines if
     composite (accented) letters are used for long vowels.  Note that
     composite letters are out of ASCII charset.
 
@@ -88,14 +88,14 @@ Transliteration Systems
 =======================
 
 There is a variety of transliteration (Romanization) systems for
-Japanese.  ``system`` keyword argument determines which system is used,
+Japanese.  `system` keyword argument determines which system is used,
 and furthermore, customizes how the Romanization is performed.
 
 Prebuilt Systems
 ----------------
 
-To select a prebuilt transliteration system, assign a ``str`` to ``system``.
-The following systems are available::
+Assigning a ``str`` to `system` means a choice of prebuilt trans-
+literation system among the ones listed below.
 
 ANSI
     Modern Hepburn system or (obsolete) ANSI Z39.11-1972.  A long vowel
@@ -151,8 +151,8 @@ The default value is 'ANSI'.
 Custom System
 -------------
 
-To customize the way of transliteration, assign a ``dict`` to ``system``.
-Key values are as follows, all of which are required::
+Assigning a ``dict`` to `system` customizes the way of transliteration.
+Key values are as follows, all of which are required.
 
 long
     A symbol to represent a long vowel.  '+' means doubled letters.
@@ -182,7 +182,7 @@ Katakana/Hiragana read from command line arguments or stdin::
     RO~MAJI HENKAN HA MENDO~ DA。
 
 Tildes (``~``) are used as substitutive symbols for macrons.  Assigning
-'ISO' or 'KUNREI2' to ``system``, circumflexes (``^``) will be used.  To
+'ISO' or 'KUNREI2' to `system`, circumflexes (``^``) will be used.  To
 represent long vowels in composite (accented) letters, add ``--composite``
 or ``-c`` option [1]_::
 
@@ -192,7 +192,7 @@ or ``-c`` option [1]_::
 .. [1] Composite letters may be displayed in the same way as
     non-accented ones in some environments.
 
-To assign nothing to ``long`` or ``sep``, use ``NO`` instead.
+To assign nothing to `long` or `sep`, use ``NO`` instead.
 
 
 Disclaimer
