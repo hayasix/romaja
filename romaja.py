@@ -18,7 +18,7 @@ Options:
   -h, --help            show this
   --version             show version
   -s, --system NAME     'ANSI' | 'ISO' | 'HEPBURN' | 'KUNREI2' |
-                        'ROAD' | 'RAIL' | 'MOFA' | 'TEST'
+                        'ROAD' | 'RAIL' | 'MOFA'
   -k, --kunrei          adopt ISO3602:1989 aka Kunrei-shiki
   -K, --kunrei2         adopt Kunrei-shiki with table 2
   --long SYMBOL         subst char for long vowel [default: ~]
@@ -28,6 +28,9 @@ Options:
   --m4n                 replace n before b/m/p with m
   -X, --no-extend       do not allow non-native pronounciation
   -c --composite        use composite chars
+  --test                test this program
+
+Default system is 'ANSI' while the authentic system is 'ISO'.
 """
 
 
@@ -37,7 +40,7 @@ import re
 from unicodedata import lookup
 
 
-__version__ = "3.1.1"
+__version__ = "3.1.2"
 __author__ = "HAYASI Hideki"
 __copyright__ = "Copyright (C) 2013 HAYASI Hideki <linxs@linxs.org>"
 __license__ = "ZPL 2.1"
@@ -327,19 +330,23 @@ def main():
 
     args = docopt.docopt(__doc__.format(script=os.path.basename(__file__)),
                         version=__version__)
+    if args["--test"]:
+        import doctest
+        doctest.testmod()
+        return
     if args["--kunrei"]: system = "ISO"
     elif args["--kunrei2"]: system = "KUNREI2"
     elif args["--system"]:
         system = args["--system"].upper()
-        if system == "TEST":
-            import doctest
-            doctest.testmod()
-            return
+        if system not in RECIPE:
+            raise ValueError("valid systems are: "
+                    "ANSI,ISO,HEPBURN,KUNREI2,ROAD,RAIL,MOFA")
     else:
+        default = RECIPE["ANSI"]
         system = dict(
-                long=args["--long"] or "~",
-                sep=args["--sep"] or "'",
-                m4n=args["--m4n"] or False,
+                long=args["--long"] or default["long"],
+                sep=args["--sep"] or default["sep"],
+                m4n=args["--m4n"] or default["m4n"],
                 extend=(not args["--no-extend"]),
                 )
         if system["long"].upper() == "NO": system["long"] = ""
