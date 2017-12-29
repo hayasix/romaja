@@ -40,7 +40,7 @@ import re
 from unicodedata import lookup
 
 
-__version__ = "3.1.2"
+__version__ = "3.1.3"
 __author__ = "HAYASI Hideki"
 __copyright__ = "Copyright (C) 2013 HAYASI Hideki <linxs@linxs.org>"
 __license__ = "ZPL 2.1"
@@ -310,7 +310,7 @@ def roma(s, system="ANSI", composite=False):
         s = s.replace("^", "~")
     elif lng != "^":
         raise ValueError("invalid long vowel symbol '{}'".format(lng))
-    if composite and lng:
+    if composite and lng and lng != "+":
         s = makecomposite(s, lng)
     if lng == "^":
         s = s.replace("TCH", "CCH")
