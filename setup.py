@@ -1,5 +1,5 @@
 #/usr/bin/env python3
-# vim: set fileencoding=utf-8 fileformat=unix :
+# vim: set fileencoding=utf-8 fileformat=unix expandtab :
 
 from setuptools import setup
 from os.path import join, dirname, exists
@@ -23,9 +23,10 @@ setup(
     description = doc.splitlines()[0].split(":", 1)[1],
     long_description = read_readme("README.rst"),
     platforms = ["generic"],
-    py_modules = ["romaja"],
+    py_modules = ["romaja", "jaroma"],
     install_requires = ["docopt>=0.6.2",],
-    entry_points = {"console_scripts": ["romaja=romaja:main"]},
+    entry_points = {"console_scripts": ["romaja=romaja:main",
+                                        "jaroma=jaroma:main"],},
     classifiers = [
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
@@ -34,6 +35,8 @@ setup(
         "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
         "License :: OSI Approved :: Zope Public License",
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",

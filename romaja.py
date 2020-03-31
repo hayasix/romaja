@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set fileencoding=utf-8 fileformat=unix :
 
-# Copyright (C) 2013 HAYASI Hideki <linxs@linxs.org>  All rights reserved.
+# Copyright (C) 2013 HAYASHI Hideki <hideki@hayasix.com>  All rights reserved.
 #
 # This software is subject to the provisions of the Zope Public License,
 # Version 2.1 (ZPL). A copy of the ZPL should accompany this distribution.
@@ -39,12 +39,14 @@ import os
 import re
 from unicodedata import lookup
 
+import docopt
 
-__version__ = "3.1.3"
-__author__ = "HAYASI Hideki"
-__copyright__ = "Copyright (C) 2013 HAYASI Hideki <linxs@linxs.org>"
+
+__version__ = "3.1.4"
+__author__ = "HAYASHI Hideki"
+__copyright__ = "Copyright (C) 2013 HAYASHI Hideki <hideki@hayasix.com>"
 __license__ = "ZPL 2.1"
-__email__ = "linxs@linxs.org"
+__email__ = "hideki@hayasix.com"
 __status__ = "Production"
 
 __all__ = ("roma", "romazi", "romaji")
@@ -96,7 +98,7 @@ def h2k(s):
     ss = list(re.sub(r"[うウ]゛", "ヴ", s))
     for p, c in enumerate(ss):
         cc = ord(c)
-        if 0x3041 <= cc <= 0x3096:
+        if 0x3041 <= cc <= 0x3096 or 0x309d <= cc <= 0x309e:
             ss[p] = chr(cc + 0x60)
     return "".join(ss)
 
@@ -325,9 +327,6 @@ romaji = roma
 
 
 def main():
-
-    import docopt
-
     args = docopt.docopt(__doc__.format(script=os.path.basename(__file__)),
                         version=__version__)
     if args["--test"]:
