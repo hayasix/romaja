@@ -29,7 +29,7 @@ import os
 import docopt
 
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __author__ = "HAYASHI Hideki"
 __copyright__ = "Copyright (C) 2020 HAYASHI Hideki"
 __license__ = "ZPL 2.1"
@@ -114,7 +114,7 @@ def katakana(s, mofa=False, long_h=False):
             continue
         pcc = pc + c
         if pc and c == "Y": y = True
-        elif long_h and not pc and c == "H": result.append("ー")
+        elif long_h and pc == "" and c == "H" and result: result.append("ー")
         elif pc == "N" or (pc == "M" and c in ("B", "P")):
             result.append("ン")
             pc = "" if c == "'" else c
@@ -131,7 +131,7 @@ def katakana(s, mofa=False, long_h=False):
 
 def k2h(s):
     return "".join(
-            chr(ord(c) - 0x60) if "ァ" <= s <= "ヶ" or "ヽ" <= s <= "ヾ"
+            chr(ord(c) - 0x60) if "ァ" <= c <= "ヶ" or "ヽ" <= c <= "ヾ"
             else c
             for c in s)
 

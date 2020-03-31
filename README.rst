@@ -2,8 +2,8 @@
 README
 ======
 
-| 2013-04-05 HAYASI,Hideki
-| 2017-06-11 HAYASI,Hideki
+| 2013-04-05 HAYASHI,Hideki
+| 2020-03-31 HAYASHI,Hideki
 
 
 Preface
@@ -11,7 +11,7 @@ Preface
 
 This archive contains a Python module which offers various ways to
 transliterate Japanese words written in Katakana/Hiragana into Romanized
-representation.
+representation, and vice versa.
 
 All programs, data, documents or files in this archive are copyrighted
 materials owned by HAYASI,Hideki, "Author" hereinafter, and Author
@@ -52,7 +52,10 @@ LICENSE.ja
     ZPL in Japanese (unofficial).
 
 romaja.py
-    The module.
+    Romanizer for Kana words.
+
+jaroma.py
+    Reverse Romanizer to Kana.
 
 setup.py
     Installation script.
@@ -61,7 +64,8 @@ setup.py
 Usage
 =====
 
-romaja.py offers the folowing module functions.
+Module romaja
+-------------
 
 roma(KANAWORDS, system='ANSI', composite=False)
     Transliterates Japanese Katakana/Hiragana words in KANAWORDS into
@@ -84,8 +88,22 @@ romaji(KANAWORDS)
     Romanized representation i.e. Romaji, according to the de-facto
     modern Hepburn system.
 
-Transliteration Systems
-=======================
+Module jaroma
+-------------
+
+katakana(ROMANWORDS, mofa=False, long_h=False)
+    Transliterates romanized Japanese words into Katakana representation.
+    To regard 'TIE' as 'CHE', set `mofa=True`.  To regard 'H' after
+    vowels as long syllable marks, set `long_h=True`.
+
+hiragana(ROMANWORDS, mofa=False, long_h=False)
+    Transliterates romanized Japanese words into Hiragana representation.
+    To regard 'TIE' as 'CHE', set `mofa=True`.  To regard 'H' after
+    vowels as long syllable marks, set `long_h=True`.
+
+
+Transliteration Systems for Module romaja
+=========================================
 
 There is a variety of transliteration (Romanization) systems for
 Japanese.  `system` keyword argument determines which system is used,
@@ -172,13 +190,14 @@ extend
     True to express non-native sound like 'Di'.  False to strictly
     comply with ISO3602:1989 or Kunrei-shiki only with Table 1.
 
+
 Command Line Tool
 =================
 
-As a CUI command, ``romaja.py`` transliterates Japanese words written in
+As a CUI command, ``romaja`` transliterates Japanese words written in
 Katakana/Hiragana read from command line arguments or stdin::
 
-    $ python romaja.py ローマじ へんかん は めんどう だ。
+    $ romaja ローマじ へんかん は めんどう だ。
     RO~MAJI HENKAN HA MENDO~ DA。
 
 Tildes (``~``) are used as substitutive symbols for macrons.  Assigning
@@ -186,13 +205,19 @@ Tildes (``~``) are used as substitutive symbols for macrons.  Assigning
 represent long vowels in composite (accented) letters, add ``--composite``
 or ``-c`` option [1]_::
 
-    $ py romaja.py -c ローマじ へんかん は めんどう だ。
+    $ romaja -c ローマじ へんかん は めんどう だ。
     RŌMAJI HENKAN HA MENDŌ DA。
 
 .. [1] Composite letters may be displayed in the same way as
     non-accented ones in some environments.
 
 To assign nothing to `long` or `sep`, use ``NO`` instead.
+
+Another CUI command ``jaroma`` transliterates romanized Japanese words
+read from command line arguments or stdin::
+
+    $ jaroma --long-h --hiragana ROHMAJI HENKAN HA MENDOH DA.
+    ろーまじ へんかん は めんどー だ
 
 
 Disclaimer
