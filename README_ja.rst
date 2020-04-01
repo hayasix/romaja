@@ -3,7 +3,7 @@ README
 ======
 
 | 2013-04-05 林秀樹
-| 2020-03-31 林秀樹
+| 2020-04-01 林秀樹
 
 
 このアーカイブについて
@@ -52,10 +52,7 @@ LICENSE.ja
     Zope Public License (ZPL) Version 2.1 (日本語訳)
 
 romaja.py
-    ローマ字への変換プログラム本体
-
-jaroma.py
-    ローマ字からの変換プログラム本体
+    ローマ字への/からの変換プログラム本体
 
 setup.py
     モジュールインストール用スクリプト
@@ -74,18 +71,6 @@ roma(KANAWORD, system='ANSI', composite=False)
     を ``True`` にすると、長音部分はアクセント記号付きのローマ字となり
     ます。この場合、戻り値は ASCII 文字集合に収まりません。
 
-以下の関数は互換性のために用意されており、将来廃止される予定です。
-
-romazi(KANAWORD)
-    KANAWORD 中のひらがなまたはカタカナを訓令式ローマ字へ変換します。
-    第 2 表は用いません。
-
-romaji(KANAWORD)
-    KANAWORD 中のひらがなまたはカタカナをヘボン式ローマ字へ変換します。
-
-モジュール jaroma
------------------
-
 katakana(ROMANWORD, mofa=False, long_h=False)
     ROMANWORD 中のローマ字表現をカタカナへ変換します。
     `mofa=True` を指定すると 'TIE' を 'チェ' と変換します。
@@ -97,6 +82,15 @@ hiragana(ROMANWORD, mofa=False, long_h=False)
     `mofa=True` を指定すると 'TIE' を 'ちぇ' と変換します。
     `long_h=True` を指定すると母音の後ろにある 'H' を音引きとみなします。
     ただし、ROMANWORDS の中では長音は Â Î Û Ê Ô で表してもかまいません。
+
+以下の関数は互換性のために用意されており、将来廃止される予定です。
+
+romazi(KANAWORD)
+    KANAWORD 中のひらがなまたはカタカナを訓令式ローマ字へ変換します。
+    第 2 表は用いません。
+
+romaji(KANAWORD)
+    KANAWORD 中のひらがなまたはカタカナをヘボン式ローマ字へ変換します。
 
 
 モジュール romaja におけるローマ字表記方式

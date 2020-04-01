@@ -3,7 +3,7 @@ README
 ======
 
 | 2013-04-05 HAYASHI,Hideki
-| 2020-03-31 HAYASHI,Hideki
+| 2020-04-01 HAYASHI,Hideki
 
 
 Preface
@@ -52,10 +52,7 @@ LICENSE.ja
     ZPL in Japanese (unofficial).
 
 romaja.py
-    Romanizer for Kana words.
-
-jaroma.py
-    Reverse Romanizer to Kana.
+    Romanizer/deromanizer script.
 
 setup.py
     Installation script.
@@ -75,6 +72,16 @@ roma(KANAWORDS, system='ANSI', composite=False)
     composite (accented) letters are used for long vowels.  Note that
     composite letters are out of ASCII charset.
 
+katakana(ROMANWORDS, mofa=False, long_h=False)
+    Transliterates romanized Japanese words into Katakana representation.
+    To regard 'TIE' as 'CHE', set `mofa=True`.  To regard 'H' after
+    vowels as long syllable marks, set `long_h=True`.
+
+hiragana(ROMANWORDS, mofa=False, long_h=False)
+    Transliterates romanized Japanese words into Hiragana representation.
+    To regard 'TIE' as 'CHE', set `mofa=True`.  To regard 'H' after
+    vowels as long syllable marks, set `long_h=True`.
+
 Following two functions are preserved for compatibility.  They are
 deprecated and will be removed in the near future.
 
@@ -87,19 +94,6 @@ romaji(KANAWORDS)
     Transliterates Japanese Katanaka/Hiragana words in KANAWORDS into
     Romanized representation i.e. Romaji, according to the de-facto
     modern Hepburn system.
-
-Module jaroma
--------------
-
-katakana(ROMANWORDS, mofa=False, long_h=False)
-    Transliterates romanized Japanese words into Katakana representation.
-    To regard 'TIE' as 'CHE', set `mofa=True`.  To regard 'H' after
-    vowels as long syllable marks, set `long_h=True`.
-
-hiragana(ROMANWORDS, mofa=False, long_h=False)
-    Transliterates romanized Japanese words into Hiragana representation.
-    To regard 'TIE' as 'CHE', set `mofa=True`.  To regard 'H' after
-    vowels as long syllable marks, set `long_h=True`.
 
 
 Transliteration Systems for Module romaja
