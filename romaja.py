@@ -48,7 +48,7 @@ from unicodedata import lookup
 import docopt
 
 
-__version__ = "3.1.7"
+__version__ = "3.1.8"
 __author__ = "HAYASHI Hideki"
 __copyright__ = "Copyright (C) 2013 HAYASHI Hideki <hideki@hayasix.com>"
 __license__ = "ZPL 2.1"
@@ -57,6 +57,9 @@ __status__ = "Production"
 
 __all__ = ("roma", "romazi", "romaji", "katakana", "hiragana")
 
+
+VOWELS = "AIUEO"
+LONGVOWELS = "ÂÎÛÊÔ"
 KT = dict(
         X="アイウエオ",
         K="カキクケコ",
@@ -74,7 +77,7 @@ KT = dict(
         R="ラリルレロ",
         W="ワヰ〓ヱヲ",
         )
-KR = dict((k[v], c + "AIUEO"[v]) for (c, k) in list(KT.items())
+KR = dict((k[v], c + VOWELS[v]) for (c, k) in list(KT.items())
                                  for v in range(5))
 RECIPE = { # system: (long, sep, m4n, extend)
     "ANSI":    dict(long="~", sep="'", m4n=False, extend=True),
@@ -106,7 +109,6 @@ RK = {
     "d": ("デャ","ディ","デュ","デェ","デョ"),
     "s": ("ツァ","ツィ","ツ","ツェ","ツォ"),
     }
-VOWELS = "AIUEO"
 HKGAP = ord("ァ") - ord("ぁ")
 
 
@@ -135,7 +137,7 @@ def k2h(s):
 def makecomposite(s, longmark):
     accname = ACCENTNAME[longmark]
     charname = "LATIN CAPITAL LETTER {} WITH {}"
-    for c in "AIUEO":
+    for c in VOWELS:
         if c not in s: continue
         s = s.replace(c + longmark, lookup(charname.format(c, accname)))
     return s
@@ -184,7 +186,7 @@ def iso3602(s):
     s = s.replace("X", "")
     s = re.sub(r"N'([^AIUEOY])", r"N\1", s)
     s = s.replace("OUU", "O^U")
-    for c in "AIUEO":
+    for c in VOWELS:
         s = re.sub(c + "{2,}", c + "^", s)
     s = s.replace("OU", "O^")
     s = s.strip("'")
@@ -381,47 +383,42 @@ def katakana(s, mofa=False, long_h=False):
     >>> assert katakana("AHA", long_h=True) == "アーア"
     >>> assert katakana("ÂA") == "アーア"
     """
-    s = s.upper()
-    s = _translate(s, "SHI CHI JI TCH", "SI TI ZI TTY")
-    if mofa: s = _translate(s, "CHIE JIE TEI DEI DEYU FUA FUI FUE FUO",
-                               "CHE JE THI DHI DYU FA FI FE FO")
-    pc = ""
-    y = False
-    el = False
+    s = _translate(s.upper(), "SHI CHI JI TCH", "SI TI ZI TTY")
+    if mofa:
+        s = _translate(s, "CHIE JIE TEI DEI DEYU FUA FUI FUE FUO",
+                          "CHE JE THI DHI DYU FA FI FE FO")
+    b, y, lng = "", False, False
     result = []
     for c in s:
-        if c in "ÂÎÛÊÔ":
-            c = _translate(c, "Â Î Û Ê Ô", "A I U E O")
-            el = True
+        if c in LONGVOWELS:
+            c = VOWELS[LONGVOWELS.index(c)]
+            lng = True
         if c in VOWELS:
             vi = VOWELS.index(c)
-            if pc not in RK:
-                result.append(pc)
-                pc = ""
+            if b not in RK:
+                result.append(b)
+                b = ""
             if y:
-                result.append(RK[pc or "_"][3 if pc == "d" else 1])
+                result.append(RK[b or "_"][3 if b == "d" else 1])
                 result.append("ャィュェョ"[vi])
             else:
-                result.append(RK[pc or "_"][vi])
-            if el: result.append("ー")
-            pc = ""
-            y = False
-            el = False
+                result.append(RK[b or "_"][vi])
+            if lng: result.append("ー")
+            b, y, lng = "", False, False
             continue
-        pcc = pc + c
-        if pc and c == "Y": y = True
-        elif long_h and pc == "" and c == "H" and result: result.append("ー")
-        elif pc == "N" or (pc == "M" and c in ("B", "P")):
+        bc = b + c
+        if b and c == "Y": y = True
+        elif long_h and b == "" and c == "H" and result: result.append("ー")
+        elif b == "N" or (b == "M" and c in ("B", "M", "P")):
             result.append("ン")
-            pc = "" if c == "'" else c
-        elif pc == c: result.append("ッ")
-        elif pcc in ("DH", "TH"): pc = pc.lower()
-        elif pcc == "SH": y = True
-        elif pcc in ("CH", "TC"): pc = "T"; y = True
-        elif pcc == "TS": pc = "s"
-        else: result.append(pc); pc = c
-    if pc == "N":
-        result.append("ン")
+            b = "" if c == "'" else c
+        elif b == c: result.append("ッ")
+        elif bc in ("DH", "TH"): b = b.lower()
+        elif bc == "SH": y = True
+        elif bc in ("CH", "TC"): b = "T"; y = True
+        elif bc == "TS": b = "s"
+        else: result.append(b); b = c
+    result.append("ン" if b == "N" else b)
     return "".join(result)
 
 
@@ -450,9 +447,9 @@ def romaja(args):
     c = args["--composite"]
     if args["WORD"]:
         print(" ".join(roma(word, system, c) for word in args["WORD"]))
-    else:
-        for line in sys.stdin:
-            print(" ".join(roma(word, system, c) for word in line.split()))
+        return
+    for line in sys.stdin:
+        print(" ".join(roma(word, system, c) for word in line.split()))
 
 
 def jaroma(args):
@@ -461,31 +458,31 @@ def jaroma(args):
     long_h = args["--long-h"]
     if args["WORD"]:
         print(" ".join(kana(word, mofa, long_h) for word in args["WORD"]))
-    else:
-        for line in sys.stdin:
-            print(" ".join(kana(word, mofa, long_h) for word in line.split()))
+        return
+    for line in sys.stdin:
+        print(" ".join(kana(word, mofa, long_h) for word in line.split()))
+
+
+def getargs():
+    return docopt.docopt(__doc__.format(script=os.path.basename(__file__)),
+                         version=__version__)
+
+def dotest():
+    import doctest
+    doctest.testmod()
 
 
 def jaroma_main():
-    args = docopt.docopt(__doc__.format(script=os.path.basename(__file__)),
-                        version=__version__)
-    if args["--test"]:
-        import doctest
-        doctest.testmod()
-    else:
-        return jaroma(args)
+    args = getargs()
+    if args["--test"]: dotest()
+    else: jaroma(args)
 
 
 def main():
-    args = docopt.docopt(__doc__.format(script=os.path.basename(__file__)),
-                        version=__version__)
-    if args["--test"]:
-        import doctest
-        doctest.testmod()
-    elif args["--reverse"]:
-        return jaroma(args)
-    else:
-        return romaja(args)
+    args = getargs()
+    if args["--test"]: dotest()
+    elif args["--reverse"]: jaroma(args)
+    else: romaja(args)
 
 
 if __name__ == "__main__":
