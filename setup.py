@@ -26,7 +26,7 @@ setup(
     py_modules = ["romaja", "jaroma"],
     install_requires = ["docopt>=0.6.2",],
     entry_points = {"console_scripts": ["romaja=romaja:main",
-                                        "jaroma=romaja:jaroma"],},
+                                        "jaroma=romaja:jaroma_main"],},
     classifiers = [
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",

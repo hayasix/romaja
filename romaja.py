@@ -18,11 +18,10 @@ Options:
   -h, --help            show this
   --version             show version
   -r, --reverse         romanize hiragana/katakana
-  --hiragana            output in hiragana instead of katakana; use with -r
-  --mofa                regard 'TIE' as 'CHE'; use with -r
-  --long-h              regard 'H' as long syllable mark; use with -r
+
+Options for romanization (katakana/hiragana -> romanized):
   -s, --system NAME     'ANSI' | 'ISO' | 'HEPBURN' | 'KUNREI2' |
-                        'ROAD' | 'RAIL' | 'MOFA'
+                        'ROAD' | 'RAIL' | 'MOFA' [default: ANSI]
   -k, --kunrei          adopt ISO3602:1989 aka Kunrei-shiki
   -K, --kunrei2         adopt Kunrei-shiki with table 2
   --long SYMBOL         subst char for long vowel [default: ~]
@@ -34,7 +33,10 @@ Options:
   -c --composite        use composite chars
   --test                test this program
 
-Default system is 'ANSI' while the authentic system is 'ISO'.
+Options for deromanization (romanized -> katakana/hiragana):
+  --hiragana            output in hiragana instead of katakana; use with -r
+  --mofa                regard 'TIE' as 'CHE'; use with -r
+  --long-h              regard 'H' as long syllable mark; use with -r
 """
 
 
@@ -46,7 +48,7 @@ from unicodedata import lookup
 import docopt
 
 
-__version__ = "3.1.6"
+__version__ = "3.1.7"
 __author__ = "HAYASHI Hideki"
 __copyright__ = "Copyright (C) 2013 HAYASHI Hideki <hideki@hayasix.com>"
 __license__ = "ZPL 2.1"
@@ -101,6 +103,7 @@ RK = {
     "J": ("ジャ","ジ","ジュ","ジェ","ジョ"),
     "V": ("ヴァ","ヴィ","ヴ","ヴェ","ヴォ"),
     "t": ("テャ","ティ","テュ","テェ","テョ"),
+    "d": ("デャ","ディ","デュ","デェ","デョ"),
     "s": ("ツァ","ツィ","ツ","ツェ","ツォ"),
     }
 VOWELS = "AIUEO"
@@ -361,10 +364,10 @@ def katakana(s, mofa=False, long_h=False):
     >>> assert katakana("SHINJUKU") == "シンジュク"
     >>> assert katakana("SHIMBASHI") == "シンバシ"
     >>> assert katakana("TIEKKU") == "チエック"
-    >>> assert katakana("TIEKKU", mofa=True) == "チェック"
+    >>> assert katakana("CHIEKKU", mofa=True) == "チェック"
     >>> assert katakana("CHEKKU") == "チェック"
     >>> assert katakana("TIENMAI") == "チエンマイ"
-    >>> assert katakana("TIENMAI", mofa=True) == "チェンマイ"
+    >>> assert katakana("CHIENMAI", mofa=True) == "チェンマイ"
     >>> assert katakana("CHENMAI") == "チェンマイ"
     >>> assert katakana("SAN'AI") == "サンアイ"
     >>> assert katakana("KON'YAKU") == "コンヤク"
@@ -380,7 +383,8 @@ def katakana(s, mofa=False, long_h=False):
     """
     s = s.upper()
     s = _translate(s, "SHI CHI JI TCH", "SI TI ZI TTY")
-    if mofa: s = _translate(s, "TIE", "CHE")
+    if mofa: s = _translate(s, "CHIE JIE TEI DEI DEYU FUA FUI FUE FUO",
+                               "CHE JE THI DHI DYU FA FI FE FO")
     pc = ""
     y = False
     el = False
@@ -425,28 +429,7 @@ def hiragana(s, mofa=False, long_h=False):
     return k2h(katakana(s, mofa, long_h))
 
 
-
-def jaroma():
-    args = docopt.docopt(__doc__.format(script=os.path.basename(__file__)),
-                         version=__version__)
-    kana = hiragana if args["--hiragana"] else katakana
-    mofa = args["--mofa"]
-    long_h = args["--long-h"]
-    if args["WORD"]:
-        print(" ".join(kana(word, mofa, long_h) for word in args["WORD"]))
-    else:
-        for line in sys.stdin:
-            print(" ".join(kana(word, mofa, long_h) for word in line.split()))
-
-
-def main():
-    args = docopt.docopt(__doc__.format(script=os.path.basename(__file__)),
-                        version=__version__)
-    if args["--test"]:
-        import doctest
-        doctest.testmod()
-        return
-    if args["--reverse"]: return jaroma()
+def romaja(args):
     if args["--kunrei"]: system = "ISO"
     elif args["--kunrei2"]: system = "KUNREI2"
     elif args["--system"]:
@@ -470,6 +453,39 @@ def main():
     else:
         for line in sys.stdin:
             print(" ".join(roma(word, system, c) for word in line.split()))
+
+
+def jaroma(args):
+    kana = hiragana if args["--hiragana"] else katakana
+    mofa = args["--mofa"]
+    long_h = args["--long-h"]
+    if args["WORD"]:
+        print(" ".join(kana(word, mofa, long_h) for word in args["WORD"]))
+    else:
+        for line in sys.stdin:
+            print(" ".join(kana(word, mofa, long_h) for word in line.split()))
+
+
+def jaroma_main():
+    args = docopt.docopt(__doc__.format(script=os.path.basename(__file__)),
+                        version=__version__)
+    if args["--test"]:
+        import doctest
+        doctest.testmod()
+    else:
+        return jaroma(args)
+
+
+def main():
+    args = docopt.docopt(__doc__.format(script=os.path.basename(__file__)),
+                        version=__version__)
+    if args["--test"]:
+        import doctest
+        doctest.testmod()
+    elif args["--reverse"]:
+        return jaroma(args)
+    else:
+        return romaja(args)
 
 
 if __name__ == "__main__":
