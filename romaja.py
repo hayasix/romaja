@@ -21,7 +21,7 @@ Options:
 
 Options for romanization (katakana/hiragana -> romanized):
   -s, --system NAME     'ANSI' | 'ISO' | 'HEPBURN' | 'KUNREI2' |
-                        'ROAD' | 'RAIL' | 'MOFA' [default: ANSI]
+                        'ROAD' | 'RAIL' | 'MOFA' | 'MOFAH' [default: ANSI]
   -k, --kunrei          adopt ISO3602:1989 aka Kunrei-shiki
   -K, --kunrei2         adopt Kunrei-shiki with table 2
   --long SYMBOL         subst char for long vowel [default: ~]
@@ -48,7 +48,7 @@ from unicodedata import lookup
 import docopt
 
 
-__version__ = "3.1.8"
+__version__ = "3.2.0"
 __author__ = "HAYASHI Hideki"
 __copyright__ = "Copyright (C) 2013 HAYASHI Hideki <hideki@hayasix.com>"
 __license__ = "ZPL 2.1"
@@ -86,6 +86,7 @@ RECIPE = { # system: (long, sep, m4n, extend)
     "ROAD":    dict(long="", sep="-", m4n=False, extend=True),
     "RAIL":    dict(long="~", sep="-", m4n=True, extend=True),
     "MOFA":    dict(long="", sep="", m4n=True, extend=False),
+    "MOFAH":   dict(long="+", sep="'", m4n=True, extend=False),
     "ISO":     dict(long="^", sep="'", m4n=False, extend=False),
     }
 ACCENTNAME = {
@@ -409,7 +410,7 @@ def katakana(s, mofa=False, long_h=False):
         bc = b + c
         if b and c == "Y": y = True
         elif long_h and b == "" and c == "H" and result: result.append("ー")
-        elif b == "N" or (b == "M" and c in ("B", "M", "P")):
+        elif b == "N" or (b == "M" and c in ("B", "P")):
             result.append("ン")
             b = "" if c == "'" else c
         elif b == c: result.append("ッ")
@@ -466,6 +467,7 @@ def jaroma(args):
 def getargs():
     return docopt.docopt(__doc__.format(script=os.path.basename(__file__)),
                          version=__version__)
+
 
 def dotest():
     import doctest
