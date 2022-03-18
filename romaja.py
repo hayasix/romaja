@@ -48,7 +48,7 @@ from unicodedata import lookup
 import docopt
 
 
-__version__ = "3.2.0"
+__version__ = "3.2.1"
 __author__ = "HAYASHI Hideki"
 __copyright__ = "Copyright (C) 2013 HAYASHI Hideki <hideki@hayasix.com>"
 __license__ = "ZPL 2.1"
@@ -384,10 +384,11 @@ def katakana(s, mofa=False, long_h=False):
     >>> assert katakana("AHA", long_h=True) == "アーア"
     >>> assert katakana("ÂA") == "アーア"
     """
-    s = _translate(s.upper(), "SHI CHI JI TCH", "SI TI ZI TTY")
+    s = _translate(s.upper(), "SHI TCH", "SI TTY")
     if mofa:
         s = _translate(s, "CHIE JIE TEI DEI DEYU FUA FUI FUE FUO",
                           "CHE JE THI DHI DYU FA FI FE FO")
+    s = _translate(s.upper(), "CHI JI", "TI ZI")
     b, y, lng = "", False, False
     result = []
     for c in s:
@@ -401,7 +402,7 @@ def katakana(s, mofa=False, long_h=False):
                 b = ""
             if y:
                 result.append(RK[b or "_"][3 if b == "d" else 1])
-                result.append("ャィュェョ"[vi])
+                result.append(("ャ", "", "ュ", "ェ", "ョ")[vi])
             else:
                 result.append(RK[b or "_"][vi])
             if lng: result.append("ー")
