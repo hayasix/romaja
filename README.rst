@@ -3,7 +3,7 @@ README
 ======
 
 | 2013-04-05 HAYASHI,Hideki
-| 2020-04-01 HAYASHI,Hideki
+| 2022-03-21 HAYASHI,Hideki
 
 
 Preface
@@ -64,13 +64,15 @@ Usage
 Module romaja
 -------------
 
-roma(KANAWORDS, system='ANSI', composite=False)
+roma(KANAWORDS, system='ANSI', composite=False, name=False)
     Transliterates Japanese Katakana/Hiragana words in KANAWORDS into
     Romanized representation i.e. Romaji, according to (obsolete) ANSI
     specification by default.  `system` can be a ``str`` or ``dict``,
     as described in the next section.  `composite` determines if
     composite (accented) letters are used for long vowels.  Note that
-    composite letters are out of ASCII charset.
+    composite letters are out of ASCII charset.  `name` determines if
+    conversion is focused on names of people.  Note that conversion CANNOT
+    be flawless based on Furigana, especially for names.
 
 katakana(ROMANWORDS, mofa=False, long_h=False)
     Transliterates romanized Japanese words into Katakana representation.
@@ -224,3 +226,13 @@ to meet with any particular use.  For more information, read LICENSE.
 This program does not perform morphological analysis, which is required
 for strict Romanization of Japanese.  To get more precise results, try
 MeCab (http://taku910.github.io/mecab/) etc.
+
+
+Acknowledgment
+==============
+
+Romaji's for names are based on https://green.adam.ne.jp/roomazi/namae.html
+by Hypnos, following the terms and conditions written on the website.
+I would like to thank Hypnos for sharing the dataset.
+
+--- END OF TEXT ---

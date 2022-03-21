@@ -21,9 +21,10 @@ Options:
 
 Options for romanization (katakana/hiragana -> romanized):
   -s, --system NAME     'ANSI' | 'ISO' | 'HEPBURN' | 'KUNREI2' |
-                        'ROAD' | 'RAIL' | 'MOFA' | 'MOFAH' [default: ANSI]
+                        'ROAD' | 'RAIL' | 'MOFA' [default: ANSI]
   -k, --kunrei          adopt ISO3602:1989 aka Kunrei-shiki
   -K, --kunrei2         adopt Kunrei-shiki with table 2
+  --name                special conversion for names
   --long SYMBOL         subst char for long vowel [default: ~]
                         'NO' for nothing; '+' to double vowel
   --sep SYMBOL          subst char after n before vowels [default: ']
@@ -48,7 +49,7 @@ from unicodedata import lookup
 import docopt
 
 
-__version__ = "3.2.1"
+__version__ = "3.2.2"
 __author__ = "HAYASHI Hideki"
 __copyright__ = "Copyright (C) 2013 HAYASHI Hideki <hideki@hayasix.com>"
 __license__ = "ZPL 2.1"
@@ -135,6 +136,16 @@ def k2h(s):
     return "".join(chr(ord(c) - HKGAP) if is_katakana(c) else c for c in s)
 
 
+NAMES = dict()
+with open(os.path.join(os.path.dirname(__file__), "names.csv"), "r",
+        encoding="utf-8-sig") as in_:
+    for line in in_:
+        line = line.split("#", 1)[0].strip()
+        if not line: continue
+        kana, roma = [s.strip() for s in line.split(",", 1)]
+        NAMES[h2k(kana)] = _translate(roma.upper(), "Â Î Û Ê Ô", "A^ I^ U^ E^ O^")
+
+
 def makecomposite(s, longmark):
     accname = ACCENTNAME[longmark]
     charname = "LATIN CAPITAL LETTER {} WITH {}"
@@ -144,10 +155,11 @@ def makecomposite(s, longmark):
     return s
 
 
-def iso3602(s):
+def iso3602(s, name=False):
     """Convert katakana to its roman repr in ISO style (aka Kunrei-shiki).
 
     s           (unicode) source text
+    name        (bool) special conversion for names
 
     Example:
     >>> assert iso3602(u"カンダ") == u"KANDA"
@@ -162,6 +174,7 @@ def iso3602(s):
     >>> assert iso3602(u"ジェラシー") == u"ZIERASI^"
     >>> assert iso3602(u"マッチャ") == u"MATTYA"
     """
+    if name and s in NAMES: return NAMES[s]
     s = _translate(s, "ヰ ヱ ヲ ヂ ヅ ウ゛ ヴ", "イ エ オ ジ ズ ヴ ブ")
     s = _translate(s, "ァ ィ ゥ ェ ォ", "XA XI XU XE XO")
     s = _translate(s, "ン", "N'")
@@ -194,7 +207,7 @@ def iso3602(s):
     return s
 
 
-def roma(s, system="ANSI", composite=False):
+def roma(s, system="ANSI", composite=False, name=False):
     """Convert kana to its roman repr in various styles.
 
     s           (unicode) source text
@@ -202,6 +215,7 @@ def roma(s, system="ANSI", composite=False):
                       'ROAD' | 'RAIL' | 'MOFA'  [default: ANSI]
                 (dict) conversion specification
     composite   (bool) use chars with composite glyphs
+    name        (bool) special conversion for names
 
     Keys and values of conversion specification are as follows::
         long    (str) '^' | 'CIRCUMFLEX' | '~' | 'MACRON' |
@@ -309,7 +323,7 @@ def roma(s, system="ANSI", composite=False):
     if isinstance(system, str):
         system = (system or "ANSI").upper()
         if system == "ISO":
-            s = iso3602(s)
+            s = iso3602(s, name=name)
             if composite: s = makecomposite(s, "^")
             return s
         if system == "KUNREI2":
@@ -326,7 +340,7 @@ def roma(s, system="ANSI", composite=False):
                 ("YE WI WE WO VA VI VE VO VYU VU "
                  "ShI ShE ZhI JE ThI ThU CHE DI DU JE "
                  "TSA TsI TSE TSO FA FI FE FO"))
-    s = iso3602(s)
+    s = iso3602(s, name=name)
     if system["m4n"]:
         s = re.sub(r"N([BMP])", r"M\1", s)
     s = _translate(s, "HU SI ZI TI TU SY ZY TY Sh Zh Th sI",
@@ -429,6 +443,7 @@ def hiragana(s, mofa=False, long_h=False):
 
 
 def romaja(args):
+    name = args["--name"]
     if args["--kunrei"]: system = "ISO"
     elif args["--kunrei2"]: system = "KUNREI2"
     elif args["--system"]:
@@ -448,10 +463,10 @@ def romaja(args):
         if system["sep"].upper() == "NO": system["sep"] = ""
     c = args["--composite"]
     if args["WORD"]:
-        print(" ".join(roma(word, system, c) for word in args["WORD"]))
+        print(" ".join(roma(word, system, c, name) for word in args["WORD"]))
         return
     for line in sys.stdin:
-        print(" ".join(roma(word, system, c) for word in line.split()))
+        print(" ".join(roma(word, system, c, name) for word in line.split()))
 
 
 def jaroma(args):
