@@ -49,7 +49,7 @@ from unicodedata import lookup
 import docopt
 
 
-__version__ = "3.2.2"
+__version__ = "3.2.3"
 __author__ = "HAYASHI Hideki"
 __copyright__ = "Copyright (C) 2013 HAYASHI Hideki <hideki@hayasix.com>"
 __license__ = "ZPL 2.1"
